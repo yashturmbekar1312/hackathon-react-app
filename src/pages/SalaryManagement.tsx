@@ -23,15 +23,6 @@ interface SalaryData {
   payDay: number;
 }
 
-interface SavingsGoal {
-  id: string;
-  name: string;
-  targetAmount: number;
-  currentAmount: number;
-  targetDate: string;
-  priority: "high" | "medium" | "low";
-}
-
 const SalaryManagement: React.FC = () => {
   const { user } = useAuth();
   const { 
@@ -39,6 +30,10 @@ const SalaryManagement: React.FC = () => {
     createIncomePlan, 
     updateIncomePlan, 
     fetchIncomePlans,
+    addMilestone,
+    deleteMilestone,
+    fetchMilestones,
+    milestones,
     isLoading 
   } = useIncomePlans();
   
@@ -55,7 +50,6 @@ const SalaryManagement: React.FC = () => {
     payDay: 1,
   });
 
-  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>([]);
   const [isEditing, setIsEditing] = useState(!activePlan);
   const [newGoal, setNewGoal] = useState({
     name: "",
@@ -64,14 +58,13 @@ const SalaryManagement: React.FC = () => {
     priority: "medium" as "high" | "medium" | "low",
   });
 
-  // Load existing data when we have an active plan
+  // Load milestones when active plan changes
   useEffect(() => {
     if (activePlan) {
-      // For now, we'll set default values since the structure has changed
-      // TODO: Load actual income sources from the plan
+      fetchMilestones(activePlan.id);
       setIsEditing(false);
     }
-  }, [activePlan]);
+  }, [activePlan, fetchMilestones]);
 
   // Load income plans on mount and clean up old localStorage data
   useEffect(() => {
@@ -159,46 +152,57 @@ const SalaryManagement: React.FC = () => {
     }
   };
 
-  const handleAddGoal = () => {
+  const handleAddGoal = async () => {
+    if (!activePlan) {
+      toast.error("Please create an income plan first");
+      return;
+    }
+
     if (!newGoal.name.trim() || !newGoal.targetAmount || !newGoal.targetDate) {
       toast.error("Please fill in all goal details");
       return;
     }
 
-    const goal: SavingsGoal = {
-      id: Date.now().toString(),
-      name: newGoal.name,
-      targetAmount: parseFloat(newGoal.targetAmount),
-      currentAmount: 0,
-      targetDate: newGoal.targetDate,
-      priority: newGoal.priority,
-    };
+    try {
+      const milestoneData = {
+        title: newGoal.name,
+        description: `${newGoal.priority.toUpperCase()} priority savings goal`,
+        targetAmount: parseFloat(newGoal.targetAmount),
+        targetDate: new Date(newGoal.targetDate).toISOString(),
+        isCompleted: false,
+      };
 
-    setSavingsGoals([...savingsGoals, goal]);
-    setNewGoal({ name: "", targetAmount: "", targetDate: "", priority: "medium" });
-    toast.success("Savings goal added successfully!");
-  };
-
-  const handleDeleteGoal = (goalId: string) => {
-    setSavingsGoals(savingsGoals.filter(goal => goal.id !== goalId));
-    toast.success("Savings goal removed");
-  };
-
-  const getProgressPercentage = (goal: SavingsGoal) => {
-    return Math.min((goal.currentAmount / goal.targetAmount) * 100, 100);
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "high":
-        return "text-red-600 bg-red-50";
-      case "medium":
-        return "text-yellow-600 bg-yellow-50";
-      case "low":
-        return "text-green-600 bg-green-50";
-      default:
-        return "text-gray-600 bg-gray-50";
+      await addMilestone(activePlan.id, milestoneData);
+      setNewGoal({ name: "", targetAmount: "", targetDate: "", priority: "medium" });
+      toast.success("Savings goal added successfully!");
+      
+      // Refresh milestones
+      fetchMilestones(activePlan.id);
+    } catch (error: any) {
+      console.error("Failed to add savings goal:", error);
+      toast.error(error.message || "Failed to add savings goal");
     }
+  };
+
+  const handleDeleteGoal = async (milestoneId: string) => {
+    if (!activePlan) return;
+
+    try {
+      await deleteMilestone(activePlan.id, milestoneId);
+      toast.success("Savings goal removed");
+      
+      // Refresh milestones
+      fetchMilestones(activePlan.id);
+    } catch (error: any) {
+      console.error("Failed to delete savings goal:", error);
+      toast.error(error.message || "Failed to remove savings goal");
+    }
+  };
+
+  const getProgressPercentage = () => {
+    // Since milestones don't have currentAmount, we'll assume 0 progress for now
+    // TODO: This could be enhanced to track actual progress
+    return 0;
   };
 
   return (
@@ -447,21 +451,21 @@ const SalaryManagement: React.FC = () => {
               </div>
 
               {/* Goals List */}
-              {savingsGoals.length > 0 ? (
+              {milestones.length > 0 ? (
                 <div className="space-y-4">
-                  {savingsGoals.map((goal) => (
-                    <div key={goal.id} className="border border-gray-200 rounded-lg p-4">
+                  {milestones.map((milestone) => (
+                    <div key={milestone.id} className="border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center space-x-3">
-                          <h3 className="font-medium text-brand-dark">{goal.name}</h3>
-                          <span className={`text-xs px-2 py-1 rounded-full ${getPriorityColor(goal.priority)}`}>
-                            {goal.priority.toUpperCase()}
+                          <h3 className="font-medium text-brand-dark">{milestone.title}</h3>
+                          <span className={`text-xs px-2 py-1 rounded-full ${milestone.isCompleted ? 'text-green-600 bg-green-50' : 'text-gray-600 bg-gray-50'}`}>
+                            {milestone.isCompleted ? 'COMPLETED' : 'IN PROGRESS'}
                           </span>
                         </div>
                         <Button
                           variant="secondary"
                           size="sm"
-                          onClick={() => handleDeleteGoal(goal.id)}
+                          onClick={() => handleDeleteGoal(milestone.id)}
                           className="text-red-600 hover:text-red-700"
                         >
                           Remove
@@ -472,19 +476,22 @@ const SalaryManagement: React.FC = () => {
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-brand-muted">Progress</span>
                           <span className="font-medium">
-                            {salaryData.currency} {goal.currentAmount.toLocaleString()} / {goal.targetAmount.toLocaleString()}
+                            {salaryData.currency} 0 / {milestone.targetAmount.toLocaleString()}
                           </span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
                             className="bg-brand-primary h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${getProgressPercentage(goal)}%` }}
+                            style={{ width: `${getProgressPercentage()}%` }}
                           ></div>
                         </div>
                         <div className="flex items-center justify-between text-xs text-brand-muted">
-                          <span>{getProgressPercentage(goal).toFixed(1)}% complete</span>
-                          <span>Target: {new Date(goal.targetDate).toLocaleDateString()}</span>
+                          <span>{getProgressPercentage().toFixed(1)}% complete</span>
+                          <span>Target: {new Date(milestone.targetDate).toLocaleDateString()}</span>
                         </div>
+                        {milestone.description && (
+                          <p className="text-sm text-brand-muted mt-2">{milestone.description}</p>
+                        )}
                       </div>
                     </div>
                   ))}
