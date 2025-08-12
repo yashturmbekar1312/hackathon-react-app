@@ -1,15 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { useSalary } from '../hooks/useSalary';
-import { useExpenses } from '../hooks/useExpenses';
-import { useInvestments } from '../hooks/useInvestments';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import logo from "../assets/images/logo.png"
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { useSalary } from "../hooks/useSalary";
+import { useExpenses } from "../hooks/useExpenses";
+import { useInvestments } from "../hooks/useInvestments";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  StatsCard,
+} from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import AppLayout from "../components/layout/AppLayout";
 
 const Dashboard: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { getMonthlyIncome, getNextPayDate } = useSalary();
   const { getTotalExpenses, getNetSavings, getBudgetAlerts } = useExpenses();
@@ -38,7 +45,11 @@ const Dashboard: React.FC = () => {
 
       // Calculate savings projection
       if (monthlyIncome > 0 && user?.savingsThreshold) {
-        await calculateSavingsProjection(monthlyIncome, totalExpenses, user.savingsThreshold);
+        await calculateSavingsProjection(
+          monthlyIncome,
+          totalExpenses,
+          user.savingsThreshold
+        );
       }
     };
 
@@ -46,260 +57,301 @@ const Dashboard: React.FC = () => {
   }, [user]);
 
   const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: user?.currency || 'USD',
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: user?.currency || "USD",
     }).format(amount);
   };
 
   const formatDate = (date: Date | null): string => {
-    if (!date) return 'Not set';
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
+    if (!date) return "Not set";
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   };
 
   const budgetAlerts = getBudgetAlerts();
-  const savingsRate = dashboardData.monthlyIncome > 0
-    ? (dashboardData.netSavings / dashboardData.monthlyIncome) * 100
-    : 0;
+  const savingsRate =
+    dashboardData.monthlyIncome > 0
+      ? (dashboardData.netSavings / dashboardData.monthlyIncome) * 100
+      : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              {/* <h1 className="text-2xl font-bold text-gray-900">Wealthify</h1> */}
-              <img src={logo} alt="logo" style={{ width: '150px', height: 'auto' }} />
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-700">Welcome, {user?.name || 'User'}</span>
-              <Button variant="outline" onClick={logout}>
-                Logout
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-8">
-            <Link to="/dashboard" className="border-b-2 border-blue-500 py-4 px-1 text-blue-600 font-medium">
-              Dashboard
-            </Link>
-            <Link to="/salary" className="border-b-2 border-transparent py-4 px-1 text-gray-500 hover:text-gray-700">
-              Salary
-            </Link>
-            <Link to="/expenses" className="border-b-2 border-transparent py-4 px-1 text-gray-500 hover:text-gray-700">
-              Expenses
-            </Link>
-            <Link to="/investments" className="border-b-2 border-transparent py-4 px-1 text-gray-500 hover:text-gray-700">
-              Investments
-            </Link>
-          </div>
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Alerts */}
-        {budgetAlerts.length > 0 && (
-          <div className="mb-6">
-            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
-              <h3 className="text-lg font-medium text-yellow-800 mb-2">Budget Alerts</h3>
-              {budgetAlerts.map((budget) => (
-                <p key={budget.id} className="text-sm text-yellow-700">
-                  {budget.category}: {((Math.abs(budget.spent) / (budget.budgetAmount || budget.amount || 1)) * 100).toFixed(1)}% used
-                </p>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Financial Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Monthly Income</CardTitle>
+    <AppLayout title="Dashboard">
+      {/* Budget Alerts */}
+      {budgetAlerts.length > 0 && (
+        <div className="mb-8 animate-slide-down">
+          <Card
+            variant="glass"
+            className="border-warning-200 bg-gradient-to-r from-warning-50 to-warning-100"
+          >
+            <CardHeader className="pb-4">
+              <div className="flex items-center">
+                <div className="p-2 rounded-lg bg-warning-500 text-white mr-3">
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <CardTitle className="text-warning-800">
+                    Budget Alerts
+                  </CardTitle>
+                  <CardDescription className="text-warning-700">
+                    You have {budgetAlerts.length} budget(s) that need attention
+                  </CardDescription>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {formatCurrency(dashboardData.monthlyIncome)}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Expenses</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">
-                {formatCurrency(dashboardData.totalExpenses)}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Net Savings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${dashboardData.netSavings >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {formatCurrency(dashboardData.netSavings)}
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                {savingsRate.toFixed(1)}% savings rate
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Next Payday</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
-                {formatDate(dashboardData.nextPayDate)}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Savings Projection */}
-        {savingsProjection && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Savings Projection</CardTitle>
-                <CardDescription>
-                  Projected savings for end of month
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Current Savings:</span>
-                    <span className="font-medium">{formatCurrency(savingsProjection.currentSavings)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Projected Month-End:</span>
-                    <span className="font-medium">{formatCurrency(savingsProjection.projectedMonthEndSavings)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Surplus Available:</span>
-                    <span className="font-medium text-green-600">
-                      {formatCurrency(savingsProjection.surplusAmount)}
+              <div className="space-y-2">
+                {budgetAlerts.map((budget) => (
+                  <div
+                    key={budget.id}
+                    className="flex items-center justify-between p-3 bg-white/50 rounded-lg"
+                  >
+                    <span className="font-medium text-warning-800">
+                      {budget.category}
+                    </span>
+                    <span className="text-sm text-warning-700">
+                      {budget.amount ? ((Math.abs(budget.spent) / budget.amount) * 100).toFixed(
+                        1
+                      ) : 0}
+                      % used
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Above Threshold:</span>
-                    <span className={`font-medium ${savingsProjection.isAboveThreshold ? 'text-green-600' : 'text-red-600'}`}>
-                      {savingsProjection.isAboveThreshold ? 'Yes' : 'No'}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-                <CardDescription>
-                  Manage your finances
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/salary')}>
-                    Set Income Plan
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/expenses')}>
-                    Track Expenses
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/investments')}>
-                    View Investment Suggestions
-                  </Button>
-                  {savingsProjection.surplusAmount > 0 && (
-                    <Button className="w-full" onClick={() => navigate('/investments')}>
-                      Invest Surplus ({formatCurrency(savingsProjection.surplusAmount)})
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+      {/* Financial Overview Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+        <StatsCard
+          title="Monthly Income"
+          value={formatCurrency(dashboardData.monthlyIncome)}
+          valueColor="success"
+          icon={
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+              />
+            </svg>
+          }
+          className="animate-fade-in-up"
+          style={{ animationDelay: "0ms" }}
+        />
 
-        {/* Get Started Section */}
-        {dashboardData.monthlyIncome === 0 && (
-          <Card>
+        <StatsCard
+          title="Total Expenses"
+          value={formatCurrency(dashboardData.totalExpenses)}
+          valueColor="danger"
+          icon={
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+          }
+          className="animate-fade-in-up"
+          style={{ animationDelay: "100ms" }}
+        />
+
+        <StatsCard
+          title="Net Savings"
+          value={formatCurrency(dashboardData.netSavings)}
+          valueColor={dashboardData.netSavings >= 0 ? "success" : "danger"}
+          trend={{
+            value: savingsRate,
+            isPositive: dashboardData.netSavings >= 0,
+          }}
+          icon={
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+              />
+            </svg>
+          }
+          className="animate-fade-in-up"
+          style={{ animationDelay: "200ms" }}
+        />
+
+        <StatsCard
+          title="Next Payday"
+          value={formatDate(dashboardData.nextPayDate)}
+          icon={
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+          }
+          className="animate-fade-in-up"
+          style={{ animationDelay: "300ms" }}
+        />
+      </div>
+
+      {/* Savings Projection & Quick Actions */}
+      {savingsProjection && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <Card variant="gradient" className="animate-slide-up">
             <CardHeader>
-              <CardTitle>Get Started with Wealthify</CardTitle>
+              <CardTitle className="text-gradient">Savings Projection</CardTitle>
               <CardDescription>
-                Set up your financial profile to start tracking and managing your wealth
+                Based on your current savings rate
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center p-6 rounded-xl bg-gradient-to-b from-green-50 to-white shadow-md hover:shadow-lg transition-shadow duration-300">
-                  <div className="w-12 h-12 mx-auto mb-4 text-green-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="8" />
-                      <line x1="12" y1="8" x2="12" y2="12" />
-                      <line x1="12" y1="16" x2="12" y2="16" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2 text-gray-900">Set Income Plan</h3>
-                  <p className="text-sm text-gray-600 mb-6">
-                    Add your salary details and payment schedule
-                  </p>
-                  <Button variant="outline" onClick={() => navigate('/salary')} className="w-full">
-                    Setup Income
-                  </Button>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-neutral-600">6 months</span>
+                  <span className="font-semibold">
+                    {formatCurrency(savingsProjection.currentSavings + (savingsProjection.surplusAmount * 6))}
+                  </span>
                 </div>
-                <div className="text-center p-6 rounded-xl bg-gradient-to-b from-green-50 to-white shadow-md hover:shadow-lg transition-shadow duration-300">
-                  <div className="w-12 h-12 mx-auto mb-4 text-green-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="12" y1="20" x2="12" y2="10" />
-                      <line x1="18" y1="20" x2="18" y2="4" />
-                      <line x1="6" y1="20" x2="6" y2="16" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2 text-gray-900">Track Expenses</h3>
-                  <p className="text-sm text-gray-600 mb-6">
-                    Import transactions and create budgets
-                  </p>
-                  <Button variant="outline" onClick={() => navigate('/expenses')} className="w-full">
-                    Track Expenses
-                  </Button>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-neutral-600">1 year</span>
+                  <span className="font-semibold">
+                    {formatCurrency(savingsProjection.currentSavings + (savingsProjection.surplusAmount * 12))}
+                  </span>
                 </div>
-                <div className="text-center p-6 rounded-xl bg-gradient-to-b from-green-50 to-white shadow-md hover:shadow-lg transition-shadow duration-300">
-                  <div className="w-12 h-12 mx-auto mb-4 text-green-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2 text-gray-900">Get Investment Ideas</h3>
-                  <p className="text-sm text-gray-600 mb-6">
-                    Receive AI-powered investment suggestions
-                  </p>
-                  <Button variant="outline" onClick={() => navigate('/investments')} className="w-full">
-                    See Suggestions
-                  </Button>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-neutral-600">5 years</span>
+                  <span className="font-semibold">
+                    {formatCurrency(savingsProjection.currentSavings + (savingsProjection.surplusAmount * 60))}
+                  </span>
                 </div>
               </div>
             </CardContent>
           </Card>
-        )}
-      </main>
-    </div>
+
+          <Card variant="gradient" className="animate-slide-up" style={{ animationDelay: "0.1s" }}>
+            <CardHeader>
+              <CardTitle className="text-gradient">Quick Actions</CardTitle>
+              <CardDescription>
+                Manage your finances efficiently
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => navigate('/salary')}
+                  className="flex-col h-auto py-4"
+                >
+                  <svg className="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                  </svg>
+                  Manage Income
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => navigate('/expenses')}
+                  className="flex-col h-auto py-4"
+                >
+                  <svg className="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  Track Expenses
+                </Button>
+                <Button
+                  variant="success"
+                  size="sm"
+                  onClick={() => navigate('/investments')}
+                  className="flex-col h-auto py-4 col-span-2"
+                >
+                  <svg className="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                  Investment Insights
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Get Started Section */}
+      {dashboardData.monthlyIncome === 0 && (
+        <Card variant="glass" className="animate-fade-in-up">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl text-gradient">Welcome to Wealthify!</CardTitle>
+            <CardDescription>
+              Let's get you started on your financial journey
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <div className="space-y-6">
+              <div className="w-20 h-20 mx-auto bg-gradient-to-br from-brand-500 to-success-500 rounded-2xl flex items-center justify-center">
+                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <div className="space-y-4">
+                <p className="text-neutral-600">
+                  Start by setting up your income information to begin tracking your financial progress.
+                </p>
+                <Button
+                  variant="primary"
+                  size="lg"
+                  onClick={() => navigate('/salary')}
+                  className="w-full"
+                >
+                  Set Up Your Income
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </AppLayout>
   );
 };
 

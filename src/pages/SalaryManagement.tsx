@@ -1,342 +1,463 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
-import { useAuth } from '../context/AuthContext';
-import { useSalary } from '../hooks/useSalary';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { IncomePlanFormData, PayCycle } from '../types/salary.types';
-import { toast } from 'sonner';
+import React, { useState, useEffect } from "react";
+import AppLayout from "../components/layout/AppLayout";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { useSalary } from "../hooks/useSalary";
+import { useAuth } from "../context/AuthContext";
+import { PayCycle } from "../types/salary.types";
+import { toast } from "sonner";
 
-// Validation schema for income plan
-const incomePlanValidationSchema = Yup.object({
-  employer: Yup.string()
-    .min(2, 'Employer name must be at least 2 characters')
-    .max(100, 'Employer name must be less than 100 characters')
-    .required('Employer name is required'),
-  expectedNetSalary: Yup.number()
-    .min(0, 'Salary must be a positive number')
-    .max(10000000, 'Salary amount seems too high')
-    .required('Expected salary is required'),
-  currency: Yup.string()
-    .oneOf(['USD', 'EUR', 'GBP', 'INR', 'CAD', 'AUD'], 'Please select a valid currency')
-    .required('Currency is required'),
-  payCycle: Yup.string()
-    .oneOf([PayCycle.WEEKLY, PayCycle.BIWEEKLY, PayCycle.MONTHLY, PayCycle.QUARTERLY], 'Please select a valid pay cycle')
-    .required('Pay cycle is required'),
-  payDay: Yup.number()
-    .min(1, 'Pay day must be between 1 and 31')
-    .max(31, 'Pay day must be between 1 and 31')
-    .integer('Pay day must be a whole number')
-    .required('Pay day is required'),
-});
+interface SalaryData {
+  baseSalary: number;
+  allowances: number;
+  deductions: number;
+  payFrequency: "monthly" | "biweekly" | "weekly";
+  currency: string;
+  employer: string;
+  payDay: number;
+}
+
+interface SavingsGoal {
+  id: string;
+  name: string;
+  targetAmount: number;
+  currentAmount: number;
+  targetDate: string;
+  priority: "high" | "medium" | "low";
+}
 
 const SalaryManagement: React.FC = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const { activePlan, createIncomePlan, updateIncomePlan, isLoading, getNextPayDate, getMonthlyIncome } = useSalary();
-  const [showForm, setShowForm] = useState(!activePlan);
-
-  const initialFormData: IncomePlanFormData = {
-    employer: activePlan?.employer || '',
-    expectedNetSalary: activePlan?.expectedNetSalary || 0,
-    payCycle: activePlan?.payCycle || PayCycle.MONTHLY,
+  const { activePlan, createIncomePlan, updateIncomePlan, isLoading } = useSalary();
+  
+  const [salaryData, setSalaryData] = useState<SalaryData>({
+    baseSalary: activePlan?.expectedNetSalary || 0,
+    allowances: 0,
+    deductions: 0,
+    payFrequency: "monthly",
+    currency: user?.currency || "USD",
+    employer: activePlan?.employer || "",
     payDay: activePlan?.payDay || 1,
-    currency: activePlan?.currency || user?.currency || 'USD',
+  });
+
+  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>([]);
+  const [isEditing, setIsEditing] = useState(!activePlan);
+  const [newGoal, setNewGoal] = useState({
+    name: "",
+    targetAmount: "",
+    targetDate: "",
+    priority: "medium" as "high" | "medium" | "low",
+  });
+
+  useEffect(() => {
+    if (activePlan) {
+      setSalaryData({
+        baseSalary: activePlan.expectedNetSalary,
+        allowances: 0,
+        deductions: 0,
+        payFrequency: activePlan.payCycle === PayCycle.MONTHLY ? "monthly" : 
+                      activePlan.payCycle === PayCycle.BIWEEKLY ? "biweekly" : "weekly",
+        currency: activePlan.currency,
+        employer: activePlan.employer,
+        payDay: activePlan.payDay,
+      });
+    }
+  }, [activePlan]);
+
+  const calculateNetSalary = () => {
+    return salaryData.baseSalary + salaryData.allowances - salaryData.deductions;
   };
 
-  const handleSubmit = async (values: IncomePlanFormData) => {
-    try {
-      if (activePlan) {
-        await updateIncomePlan(activePlan.id, values);
-      } else {
-        await createIncomePlan(values);
-      }
-      toast.success(
-        activePlan ? 'Income Plan Updated' : 'Income Plan Created',
-        { description: 'Your salary information has been saved successfully.' }
-      );
-      setShowForm(false);
-    } catch (err) {
-      console.error('Failed to save income plan:', err);
-      toast.error(
-        'Failed to Save',
-        { description: err instanceof Error ? err.message : 'Please try again.' }
-      );
+  const calculateMonthlySalary = () => {
+    const netSalary = calculateNetSalary();
+    switch (salaryData.payFrequency) {
+      case "weekly":
+        return netSalary * 52 / 12;
+      case "biweekly":
+        return netSalary * 26 / 12;
+      default:
+        return netSalary;
     }
   };
 
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: user?.currency || 'USD',
-    }).format(amount);
+  const handleSalarySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!salaryData.employer.trim()) {
+      toast.error("Please enter your employer name");
+      return;
+    }
+
+    if (salaryData.baseSalary <= 0) {
+      toast.error("Please enter a valid base salary");
+      return;
+    }
+
+    try {
+      const planData = {
+        employer: salaryData.employer,
+        expectedNetSalary: calculateNetSalary(),
+        payCycle: salaryData.payFrequency.toUpperCase() as any,
+        payDay: salaryData.payDay,
+        currency: salaryData.currency,
+      };
+
+      if (activePlan) {
+        await updateIncomePlan(activePlan.id, planData);
+        toast.success("Salary information updated successfully!");
+      } else {
+        await createIncomePlan(planData);
+        toast.success("Salary information saved successfully!");
+      }
+      
+      setIsEditing(false);
+    } catch (error: any) {
+      console.error("Failed to save salary data:", error);
+      toast.error(error.message || "Failed to save salary information");
+    }
   };
 
-  const formatDate = (date: Date | null): string => {
-    if (!date) return 'Not set';
-    return date.toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-    });
+  const handleAddGoal = () => {
+    if (!newGoal.name.trim() || !newGoal.targetAmount || !newGoal.targetDate) {
+      toast.error("Please fill in all goal details");
+      return;
+    }
+
+    const goal: SavingsGoal = {
+      id: Date.now().toString(),
+      name: newGoal.name,
+      targetAmount: parseFloat(newGoal.targetAmount),
+      currentAmount: 0,
+      targetDate: newGoal.targetDate,
+      priority: newGoal.priority,
+    };
+
+    setSavingsGoals([...savingsGoals, goal]);
+    setNewGoal({ name: "", targetAmount: "", targetDate: "", priority: "medium" });
+    toast.success("Savings goal added successfully!");
+  };
+
+  const handleDeleteGoal = (goalId: string) => {
+    setSavingsGoals(savingsGoals.filter(goal => goal.id !== goalId));
+    toast.success("Savings goal removed");
+  };
+
+  const getProgressPercentage = (goal: SavingsGoal) => {
+    return Math.min((goal.currentAmount / goal.targetAmount) * 100, 100);
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "high":
+        return "text-red-600 bg-red-50";
+      case "medium":
+        return "text-yellow-600 bg-yellow-50";
+      case "low":
+        return "text-green-600 bg-green-50";
+      default:
+        return "text-gray-600 bg-gray-50";
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">Salary Management</h1>
-            </div>
-            <Button variant="outline" onClick={() => navigate('/dashboard')}>
-              Back to Dashboard
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Current Plan Display */}
-        {activePlan && !showForm && (
-          <div className="mb-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Current Income Plan</CardTitle>
-                <CardDescription>
-                  Your active salary information
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-4">Plan Details</h3>
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Employer:</span>
-                        <span className="font-medium">{activePlan.employer}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Net Salary:</span>
-                        <span className="font-medium">{formatCurrency(activePlan.expectedNetSalary)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Pay Cycle:</span>
-                        <span className="font-medium capitalize">{activePlan.payCycle}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Pay Day:</span>
-                        <span className="font-medium">{activePlan.payDay}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-4">Calculated Values</h3>
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Monthly Equivalent:</span>
-                        <span className="font-medium">{formatCurrency(getMonthlyIncome())}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Next Pay Date:</span>
-                        <span className="font-medium">{formatDate(getNextPayDate())}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-6">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowForm(true)}
-                  >
-                    Update Plan
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Income Plan Form */}
-        {showForm && (
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                {activePlan ? 'Update Income Plan' : 'Create Income Plan'}
-              </CardTitle>
-              <CardDescription>
-                Enter your salary details and payment schedule
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Formik
-                initialValues={initialFormData}
-                validationSchema={incomePlanValidationSchema}
-                onSubmit={handleSubmit}
-                enableReinitialize
-              >
-                {({ errors, touched, isSubmitting }) => (
-                  <Form className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label htmlFor="employer" className="text-sm font-medium text-gray-700">
-                          Employer Name
-                        </label>
-                        <Field
-                          as={Input}
-                          id="employer"
-                          name="employer"
-                          type="text"
-                          placeholder="Enter your employer name"
-                          className={errors.employer && touched.employer ? 'border-red-500' : ''}
-                        />
-                        <ErrorMessage name="employer" component="div" className="text-sm text-red-600" />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label htmlFor="currency" className="text-sm font-medium text-gray-700">
-                          Currency
-                        </label>
-                        <Field
-                          as="select"
-                          id="currency"
-                          name="currency"
-                          className={`w-full h-10 px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                            errors.currency && touched.currency ? 'border-red-500' : 'border-gray-300'
-                          }`}
-                        >
-                          <option value="USD">USD - US Dollar</option>
-                          <option value="EUR">EUR - Euro</option>
-                          <option value="GBP">GBP - British Pound</option>
-                          <option value="INR">INR - Indian Rupee</option>
-                          <option value="CAD">CAD - Canadian Dollar</option>
-                          <option value="AUD">AUD - Australian Dollar</option>
-                        </Field>
-                        <ErrorMessage name="currency" component="div" className="text-sm text-red-600" />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label htmlFor="expectedNetSalary" className="text-sm font-medium text-gray-700">
-                          Expected Net Salary
-                        </label>
-                        <Field
-                          as={Input}
-                          id="expectedNetSalary"
-                          name="expectedNetSalary"
-                          type="number"
-                          placeholder="Enter your net salary"
-                          min={0}
-                          step={0.01}
-                          className={errors.expectedNetSalary && touched.expectedNetSalary ? 'border-red-500' : ''}
-                        />
-                        <ErrorMessage name="expectedNetSalary" component="div" className="text-sm text-red-600" />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label htmlFor="payCycle" className="text-sm font-medium text-gray-700">
-                          Pay Cycle
-                        </label>
-                        <Field
-                          as="select"
-                          id="payCycle"
-                          name="payCycle"
-                          className={`w-full h-10 px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                            errors.payCycle && touched.payCycle ? 'border-red-500' : 'border-gray-300'
-                          }`}
-                        >
-                          <option value={PayCycle.WEEKLY}>Weekly</option>
-                          <option value={PayCycle.BIWEEKLY}>Bi-weekly</option>
-                          <option value={PayCycle.MONTHLY}>Monthly</option>
-                          <option value={PayCycle.QUARTERLY}>Quarterly</option>
-                        </Field>
-                        <ErrorMessage name="payCycle" component="div" className="text-sm text-red-600" />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label htmlFor="payDay" className="text-sm font-medium text-gray-700">
-                        Pay Day (Day of Month)
-                      </label>
-                      <Field
-                        as={Input}
-                        id="payDay"
-                        name="payDay"
-                        type="number"
-                        placeholder="Enter pay day (1-31)"
-                        min={1}
-                        max={31}
-                        className={errors.payDay && touched.payDay ? 'border-red-500' : ''}
-                      />
-                      <ErrorMessage name="payDay" component="div" className="text-sm text-red-600" />
-                      <p className="text-xs text-gray-500">
-                        Enter the day of the month you receive your salary (e.g., 15 for the 15th)
-                      </p>
-                    </div>
-
-                    <div className="flex space-x-4">
-                      {activePlan && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setShowForm(false)}
-                          className="flex-1"
-                        >
-                          Cancel
-                        </Button>
-                      )}
-                      <Button
-                        type="submit"
-                        disabled={isSubmitting || isLoading}
-                        className="flex-1"
-                      >
-                        {isLoading ? 'Saving...' : (activePlan ? 'Update Plan' : 'Create Plan')}
-                      </Button>
-                    </div>
-                  </Form>
-                )}
-              </Formik>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Salary Verification Section */}
-        {activePlan && !showForm && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Salary Verification</CardTitle>
-              <CardDescription>
-                Track and verify your salary receipts
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <div className="text-6xl mb-4">💰</div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Salary Verification Coming Soon
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  We'll automatically verify when your salary is received and alert you if there are any discrepancies.
+    <AppLayout title="Income Management">
+      <div className="space-y-6">
+        {/* Salary Overview */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Income Information</CardTitle>
+                <p className="text-sm text-brand-muted mt-1">
+                  Manage your salary and income details
                 </p>
-                <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                  <p className="text-sm text-blue-700">
-                    <strong>Next Expected Payment:</strong> {formatDate(getNextPayDate())}
-                  </p>
-                  <p className="text-sm text-blue-700">
-                    <strong>Expected Amount:</strong> {formatCurrency(activePlan.expectedNetSalary)}
-                  </p>
+              </div>
+              {!isEditing && activePlan && (
+                <Button 
+                  variant="secondary" 
+                  onClick={() => setIsEditing(true)}
+                >
+                  Edit Details
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {isEditing ? (
+              <form onSubmit={handleSalarySubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-brand-dark mb-2">
+                      Employer
+                    </label>
+                    <Input
+                      type="text"
+                      value={salaryData.employer}
+                      onChange={(e) => setSalaryData({...salaryData, employer: e.target.value})}
+                      placeholder="Company name"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-dark mb-2">
+                      Currency
+                    </label>
+                    <select
+                      value={salaryData.currency}
+                      onChange={(e) => setSalaryData({...salaryData, currency: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                    >
+                      <option value="USD">USD - US Dollar</option>
+                      <option value="EUR">EUR - Euro</option>
+                      <option value="GBP">GBP - British Pound</option>
+                      <option value="CAD">CAD - Canadian Dollar</option>
+                      <option value="AUD">AUD - Australian Dollar</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-brand-dark mb-2">
+                      Base Salary
+                    </label>
+                    <Input
+                      type="number"
+                      value={salaryData.baseSalary || ""}
+                      onChange={(e) => setSalaryData({...salaryData, baseSalary: parseFloat(e.target.value) || 0})}
+                      placeholder="0.00"
+                      min="0"
+                      step="0.01"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-dark mb-2">
+                      Allowances
+                    </label>
+                    <Input
+                      type="number"
+                      value={salaryData.allowances || ""}
+                      onChange={(e) => setSalaryData({...salaryData, allowances: parseFloat(e.target.value) || 0})}
+                      placeholder="0.00"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-dark mb-2">
+                      Deductions
+                    </label>
+                    <Input
+                      type="number"
+                      value={salaryData.deductions || ""}
+                      onChange={(e) => setSalaryData({...salaryData, deductions: parseFloat(e.target.value) || 0})}
+                      placeholder="0.00"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-brand-dark mb-2">
+                      Pay Frequency
+                    </label>
+                    <select
+                      value={salaryData.payFrequency}
+                      onChange={(e) => setSalaryData({...salaryData, payFrequency: e.target.value as any})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                    >
+                      <option value="weekly">Weekly</option>
+                      <option value="biweekly">Bi-weekly</option>
+                      <option value="monthly">Monthly</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-dark mb-2">
+                      Pay Day of Month
+                    </label>
+                    <Input
+                      type="number"
+                      value={salaryData.payDay || ""}
+                      onChange={(e) => setSalaryData({...salaryData, payDay: parseInt(e.target.value) || 1})}
+                      min="1"
+                      max="31"
+                      placeholder="1"
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-brand-primary-50 p-4 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-brand-dark">Net Salary per pay period:</span>
+                    <span className="text-xl font-bold text-brand-primary">
+                      {salaryData.currency} {calculateNetSalary().toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-sm text-brand-muted">Monthly equivalent:</span>
+                    <span className="font-semibold text-brand-dark">
+                      {salaryData.currency} {calculateMonthlySalary().toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex space-x-3">
+                  <Button type="submit" disabled={isLoading}>
+                    {isLoading ? "Saving..." : "Save Changes"}
+                  </Button>
+                  {activePlan && (
+                    <Button 
+                      type="button" 
+                      variant="secondary" 
+                      onClick={() => setIsEditing(false)}
+                    >
+                      Cancel
+                    </Button>
+                  )}
+                </div>
+              </form>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg">
+                    <h3 className="text-sm font-medium text-blue-800">Employer</h3>
+                    <p className="text-xl font-bold text-blue-900">{salaryData.employer || "Not set"}</p>
+                  </div>
+                  <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg">
+                    <h3 className="text-sm font-medium text-green-800">Net Salary</h3>
+                    <p className="text-xl font-bold text-green-900">
+                      {salaryData.currency} {calculateNetSalary().toLocaleString()}
+                    </p>
+                    <p className="text-xs text-green-700 capitalize">{salaryData.payFrequency}</p>
+                  </div>
+                  <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-lg">
+                    <h3 className="text-sm font-medium text-purple-800">Monthly Income</h3>
+                    <p className="text-xl font-bold text-purple-900">
+                      {salaryData.currency} {calculateMonthlySalary().toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-4 rounded-lg">
+                    <h3 className="text-sm font-medium text-orange-800">Pay Day</h3>
+                    <p className="text-xl font-bold text-orange-900">{salaryData.payDay}</p>
+                    <p className="text-xs text-orange-700">of the month</p>
+                  </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        )}
-      </main>
-    </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Savings Goals */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Savings Goals</CardTitle>
+            <p className="text-sm text-brand-muted">
+              Set and track your financial savings targets
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              {/* Add New Goal Form */}
+              <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+                <h3 className="font-medium text-brand-dark">Add New Savings Goal</h3>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                  <Input
+                    type="text"
+                    placeholder="Goal name"
+                    value={newGoal.name}
+                    onChange={(e) => setNewGoal({...newGoal, name: e.target.value})}
+                  />
+                  <Input
+                    type="number"
+                    placeholder="Target amount"
+                    value={newGoal.targetAmount}
+                    onChange={(e) => setNewGoal({...newGoal, targetAmount: e.target.value})}
+                    min="0"
+                    step="0.01"
+                  />
+                  <Input
+                    type="date"
+                    value={newGoal.targetDate}
+                    onChange={(e) => setNewGoal({...newGoal, targetDate: e.target.value})}
+                  />
+                  <div className="flex space-x-2">
+                    <select
+                      value={newGoal.priority}
+                      onChange={(e) => setNewGoal({...newGoal, priority: e.target.value as any})}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                    >
+                      <option value="low">Low Priority</option>
+                      <option value="medium">Medium Priority</option>
+                      <option value="high">High Priority</option>
+                    </select>
+                    <Button onClick={handleAddGoal}>Add</Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Goals List */}
+              {savingsGoals.length > 0 ? (
+                <div className="space-y-4">
+                  {savingsGoals.map((goal) => (
+                    <div key={goal.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <h3 className="font-medium text-brand-dark">{goal.name}</h3>
+                          <span className={`text-xs px-2 py-1 rounded-full ${getPriorityColor(goal.priority)}`}>
+                            {goal.priority.toUpperCase()}
+                          </span>
+                        </div>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleDeleteGoal(goal.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-brand-muted">Progress</span>
+                          <span className="font-medium">
+                            {salaryData.currency} {goal.currentAmount.toLocaleString()} / {goal.targetAmount.toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-brand-primary h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${getProgressPercentage(goal)}%` }}
+                          ></div>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-brand-muted">
+                          <span>{getProgressPercentage(goal).toFixed(1)}% complete</span>
+                          <span>Target: {new Date(goal.targetDate).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-brand-muted">
+                  <p>No savings goals set yet.</p>
+                  <p className="text-sm">Add your first goal above to start tracking your progress!</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </AppLayout>
   );
 };
 
