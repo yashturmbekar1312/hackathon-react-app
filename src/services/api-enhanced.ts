@@ -51,16 +51,11 @@ class ApiService {
 
         // Log requests in development
         if (import.meta.env.DEV) {
-          console.log(`🔵 API Request: ${config.method?.toUpperCase()} ${config.url}`, {
-            data: config.data,
-            params: config.params,
-          });
-        }
+          }
 
         return config;
       },
       (error) => {
-        console.error('🔴 API Request Error:', error);
         return Promise.reject(error);
       }
     );
@@ -70,11 +65,7 @@ class ApiService {
       (response) => {
         // Log successful responses in development
         if (import.meta.env.DEV) {
-          console.log(`🟢 API Response: ${response.config.method?.toUpperCase()} ${response.config.url}`, {
-            status: response.status,
-            data: response.data,
-          });
-        }
+          }
         return response;
       },
       async (error: AxiosError) => {
@@ -112,13 +103,7 @@ class ApiService {
 
         // Log errors in development
         if (import.meta.env.DEV) {
-          console.error('🔴 API Response Error:', {
-            status: error.response?.status,
-            url: error.config?.url,
-            message: error.message,
-            data: error.response?.data,
-          });
-        }
+          }
 
         return Promise.reject(this.formatError(error));
       }
@@ -262,3 +247,4 @@ class ApiService {
 
 export const apiService = new ApiService();
 export default apiService;
+

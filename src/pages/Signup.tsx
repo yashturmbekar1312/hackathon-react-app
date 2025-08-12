@@ -173,7 +173,6 @@ const Signup: React.FC = () => {
       toast.success("Account created successfully! Please login to continue.");
       navigate("/login");
     } catch (error: any) {
-      console.error("Registration error:", error);
       toast.error(error.message || "Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
@@ -385,3 +384,4 @@ const Signup: React.FC = () => {
 };
 
 export default Signup;
+

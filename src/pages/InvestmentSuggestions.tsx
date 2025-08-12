@@ -73,24 +73,21 @@ const InvestmentSuggestions: React.FC = () => {
       await generateSuggestions(params);
       setHasGeneratedSuggestions(true);
     } catch (error) {
-      console.error("Failed to generate suggestions:", error);
-    }
+      }
   };
 
   const handleAcceptSuggestion = async (suggestionId: string) => {
     try {
       await acceptSuggestion(suggestionId);
     } catch (error) {
-      console.error("Failed to accept suggestion:", error);
-    }
+      }
   };
 
   const handleRejectSuggestion = async (suggestionId: string) => {
     try {
       await rejectSuggestion(suggestionId);
     } catch (error) {
-      console.error("Failed to reject suggestion:", error);
-    }
+      }
   };
 
   const formatCurrency = (amount: number): string => {
@@ -701,3 +698,4 @@ const InvestmentSuggestions: React.FC = () => {
 };
 
 export default InvestmentSuggestions;
+

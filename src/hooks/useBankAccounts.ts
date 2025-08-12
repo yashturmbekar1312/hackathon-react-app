@@ -21,8 +21,7 @@ export const useBankAccounts = () => {
       setAccounts(accountsData);
     } catch (err: any) {
       setError(err.message || "Failed to fetch accounts");
-      console.error("Failed to fetch accounts:", err);
-    } finally {
+      } finally {
       setIsLoading(false);
     }
   };
@@ -42,7 +41,6 @@ export const useBankAccounts = () => {
       const errorMessage = err.message || "Failed to link bank account";
       setError(errorMessage);
       toast.error(errorMessage);
-      console.error("Failed to link account:", err);
       return null;
     } finally {
       setIsLoading(false);
@@ -70,7 +68,6 @@ export const useBankAccounts = () => {
       const errorMessage = err.message || "Failed to update account";
       setError(errorMessage);
       toast.error(errorMessage);
-      console.error("Failed to update account:", err);
       return null;
     } finally {
       setIsLoading(false);
@@ -90,7 +87,6 @@ export const useBankAccounts = () => {
       const errorMessage = err.message || "Failed to delete account";
       setError(errorMessage);
       toast.error(errorMessage);
-      console.error("Failed to delete account:", err);
       return false;
     } finally {
       setIsLoading(false);
@@ -119,3 +115,4 @@ export const useBankAccounts = () => {
     refreshAccounts: fetchAccounts,
   };
 };
+

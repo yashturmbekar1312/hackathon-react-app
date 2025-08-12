@@ -1,6 +1,9 @@
 /**
  * Core API Client
- * Professional HTTP client with comprehensive error handling, retries, and interceptors
+ * Professional HTTP client with comprehensive error   private handleResponseSuccess(response: AxiosResponse): AxiosResponse {
+    // Response handling can be added here if needed
+    return response;
+  }ries, and interceptors
  */
 
 import axios, { 
@@ -67,54 +70,22 @@ export class ApiClient {
 
     // Log request in development
     if (import.meta.env.DEV) {
-      console.log(`🔵 API Request [${extendedConfig.metadata.requestId}]:`, {
-        method: config.method?.toUpperCase(),
-        url: config.url,
-        data: config.data,
-        params: config.params,
-      });
-    }
+      }
 
     return config;
   }
 
   private handleRequestError(error: AxiosError): Promise<AxiosError> {
-    console.error('🔴 Request Error:', error);
     return Promise.reject(error);
   }
 
   private handleResponse(response: AxiosResponse): AxiosResponse {
-    const config = response.config as InternalAxiosRequestConfig & { 
-      metadata?: { startTime: number; requestId: string } 
-    };
-    const requestId = config.metadata?.requestId;
-    const duration = Date.now() - (config.metadata?.startTime || 0);
-
-    // Log response in development
-    if (import.meta.env.DEV) {
-      console.log(`🟢 API Response [${requestId}] (${duration}ms):`, {
-        status: response.status,
-        url: response.config.url,
-        data: response.data,
-      });
-    }
-
+    // Response handling can be added here if needed
     return response;
   }
 
   private async handleResponseError(error: AxiosError): Promise<any> {
     const config = error.config as any;
-    const requestId = config?.metadata?.requestId;
-
-    // Log error in development
-    if (import.meta.env.DEV) {
-      console.error(`🔴 API Error [${requestId}]:`, {
-        status: error.response?.status,
-        url: error.config?.url,
-        message: error.message,
-        data: error.response?.data,
-      });
-    }
 
     // Handle 401 Unauthorized - Token Refresh
     if (error.response?.status === 401 && !config?._retry) {
@@ -331,3 +302,4 @@ export class ApiClient {
 
 // Export singleton instance
 export const apiClient = new ApiClient();
+

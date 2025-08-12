@@ -57,7 +57,7 @@ const Settings: React.FC = () => {
           occupation: profile.occupation || "",
         });
       } catch (error: any) {
-        console.error("Failed to load user profile:", error);
+        // Failed to load user profile
         toast.error("Failed to load profile");
         // Fall back to user data from auth context
         if (user) {
@@ -109,7 +109,7 @@ const Settings: React.FC = () => {
       const updatedProfileResponse = await userApiService.getProfile();
       setUserProfile(updatedProfileResponse.data);
     } catch (error: any) {
-      console.error("Profile update error:", error);
+      // Profile update error
       toast.error(error.message || "Failed to update profile");
     } finally {
       setIsLoading(false);
@@ -137,7 +137,7 @@ const Settings: React.FC = () => {
       toast.success("OTP sent to your email");
       setShowOtpInput(true);
     } catch (error: any) {
-      console.error("Send OTP error:", error);
+      // Send OTP error
       toast.error("Failed to send OTP");
     } finally {
       setIsSendingOtp(false);
@@ -179,7 +179,7 @@ const Settings: React.FC = () => {
         toast.error(errorData.message || "Invalid OTP");
       }
     } catch (error: any) {
-      console.error("Verify email error:", error);
+      // Verify email error
       toast.error("Failed to verify email");
     } finally {
       setIsVerifyingEmail(false);

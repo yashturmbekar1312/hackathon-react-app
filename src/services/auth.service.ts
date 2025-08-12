@@ -105,10 +105,6 @@ class AuthService {
    * POST /auth/login
    */
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    console.log("🔐 AuthService: Login attempt with credentials:", {
-      email: credentials.email,
-    });
-
     const response = await apiService.post<
       ApiResponse<{
         accessToken: string;
@@ -124,9 +120,6 @@ class AuthService {
         };
       }>
     >("/auth/login", credentials);
-
-    console.log("🔐 AuthService: Login API response:", response);
-    console.log("🔐 AuthService: Login data:", response.data);
 
     // Extract the actual token and user from the response
     const apiData = response.data;
@@ -147,32 +140,12 @@ class AuthService {
 
     // Store token and user data
     if (token) {
-      console.log(
-        "💾 AuthService: Storing token:",
-        token.substring(0, 20) + "..."
-      );
-      console.log("💾 AuthService: Storing user:", user);
-
       localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
       localStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(user));
       // Also store refresh token if available
       if (apiData.refreshToken) {
         localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, apiData.refreshToken);
       }
-
-      // Verify storage
-      const storedToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-      const storedUser = localStorage.getItem(STORAGE_KEYS.USER_PROFILE);
-      console.log(
-        "✅ AuthService: Token stored successfully:",
-        storedToken ? storedToken.substring(0, 20) + "..." : "FAILED"
-      );
-      console.log(
-        "✅ AuthService: User stored successfully:",
-        storedUser ? JSON.parse(storedUser) : "FAILED"
-      );
-    } else {
-      console.error("❌ AuthService: No token in response!", response.data);
     }
 
     // Return in the format expected by AuthContext
@@ -187,7 +160,7 @@ class AuthService {
     try {
       await apiService.post("/auth/logout");
     } catch (error) {
-      console.error("Logout error:", error);
+      // Silent error handling
     } finally {
       localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
       localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
@@ -301,10 +274,9 @@ class AuthService {
   }
 
   // Mock functions for development (to be replaced with real API calls)
-  async mockSendOTP(email: string): Promise<{ message: string }> {
+  async mockSendOTP(_email: string): Promise<{ message: string }> {
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    console.log(`Mock OTP sent to ${email}: 123456`);
     return { message: "OTP sent successfully" };
   }
 

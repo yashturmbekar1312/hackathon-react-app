@@ -54,32 +54,18 @@ class ApiService {
   }
 
   private setupInterceptors() {
-    // Request interceptor for logging and auth
+    // Request interceptor for auth
     this.api.interceptors.request.use(
       (config) => {
         const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-        console.log('🔍 API Interceptor - Token from localStorage:', token ? `${token.substring(0, 20)}...` : 'NO TOKEN');
         
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
-          console.log('✅ Authorization header set:', `Bearer ${token.substring(0, 20)}...`);
-        } else {
-          console.warn('⚠️ No token found in localStorage, request will be unauthenticated');
-        }
-
-        // Log requests in development
-        if (import.meta.env.DEV) {
-          console.log(`🔵 API Request: ${config.method?.toUpperCase()} ${config.url}`, {
-            data: config.data,
-            params: config.params,
-            headers: config.headers,
-          });
         }
 
         return config;
       },
       (error) => {
-        console.error('🔴 API Request Error:', error);
         return Promise.reject(error);
       }
     );
@@ -87,13 +73,6 @@ class ApiService {
     // Response interceptor for token refresh and error handling
     this.api.interceptors.response.use(
       (response) => {
-        // Log successful responses in development
-        if (import.meta.env.DEV) {
-          console.log(`🟢 API Response: ${response.config.method?.toUpperCase()} ${response.config.url}`, {
-            status: response.status,
-            data: response.data,
-          });
-        }
         return response;
       },
       async (error: AxiosError) => {
@@ -101,16 +80,6 @@ class ApiService {
 
         // Handle token refresh for 401 errors
         if (error.response?.status === 401 && !originalRequest._retry) {
-          console.error('🔴 401 Unauthorized Error:', {
-            url: originalRequest.url,
-            method: originalRequest.method,
-            headers: originalRequest.headers,
-            responseData: error.response.data,
-          });
-          
-          const currentToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-          console.error('🔴 Current token in localStorage:', currentToken ? currentToken.substring(0, 20) + '...' : 'NO TOKEN');
-          
           if (this.isRefreshing) {
             return new Promise((resolve, reject) => {
               this.failedQueue.push({ resolve, reject });
@@ -137,16 +106,6 @@ class ApiService {
           } finally {
             this.isRefreshing = false;
           }
-        }
-
-        // Log errors in development
-        if (import.meta.env.DEV) {
-          console.error('🔴 API Response Error:', {
-            status: error.response?.status,
-            url: error.config?.url,
-            message: error.message,
-            data: error.response?.data,
-          });
         }
 
         return Promise.reject(this.formatError(error));

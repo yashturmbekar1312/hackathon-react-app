@@ -72,8 +72,7 @@ class EnhancedAuthService {
       // Call logout endpoint
       await apiService.post('/auth/logout');
     } catch (error) {
-      console.error('Logout API error:', error);
-    } finally {
+      } finally {
       // Always clear local storage
       this.clearAuthData();
     }
@@ -136,7 +135,6 @@ class EnhancedAuthService {
     try {
       return JSON.parse(userStr);
     } catch (error) {
-      console.error('Error parsing user data:', error);
       return null;
     }
   }
@@ -221,15 +219,13 @@ class EnhancedAuthService {
       }
 
       this.refreshTokenTimer = setTimeout(() => {
-        this.refreshToken().catch((error) => {
-          console.error('Automatic token refresh failed:', error);
+        this.refreshToken().catch(() => {
           this.clearAuthData();
           window.location.href = '/login';
         });
       }, refreshTime);
     } catch (error) {
-      console.error('Error setting up token refresh:', error);
-    }
+      }
   }
 
   private clearAuthData() {
@@ -265,7 +261,6 @@ class EnhancedAuthService {
       const response = await apiService.get<{ permissions: string[] }>('/auth/permissions');
       return response.permissions;
     } catch (error) {
-      console.error('Error fetching permissions:', error);
       return [];
     }
   }
@@ -273,3 +268,4 @@ class EnhancedAuthService {
 
 export const enhancedAuthService = new EnhancedAuthService();
 export default enhancedAuthService;
+

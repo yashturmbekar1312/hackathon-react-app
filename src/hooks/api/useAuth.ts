@@ -85,7 +85,6 @@ export const useAuth = (): UseAuthReturn => {
         isInitialized: true,
       }));
     } catch (error) {
-      console.error('Auth initialization error:', error);
       setState(prev => ({
         ...prev,
         user: null,
@@ -278,8 +277,7 @@ export const useAuth = (): UseAuthReturn => {
         await authApiService.logout({ refreshToken });
       }
     } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
+      } finally {
       clearAuthenticatedUser();
     }
   }, [setLoadingState, clearAuthenticatedUser]);
@@ -302,7 +300,6 @@ export const useAuth = (): UseAuthReturn => {
         throw new Error(response.message);
       }
     } catch (error) {
-      console.error('Token refresh error:', error);
       clearAuthenticatedUser();
       throw error;
     }
@@ -484,3 +481,4 @@ export const useRegistrationFlow = () => {
     clearError: () => setState(prev => ({ ...prev, error: null })),
   };
 };
+

@@ -19,26 +19,25 @@ const validateAuthData = (): boolean => {
   try {
     const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
     const userStr = localStorage.getItem(STORAGE_KEYS.USER_PROFILE);
-    
+
     if (!token || !userStr) {
       return false;
     }
-    
+
     // Try to parse user data
     const user = JSON.parse(userStr);
     if (!user || !user.id || !user.email) {
       return false;
     }
-    
+
     // Check if token is expired (basic check - decode JWT would be more thorough)
     // For now, just check if token exists and has proper format
     if (token.length < 10) {
       return false;
     }
-    
+
     return true;
   } catch (error) {
-    console.error("Error validating auth data:", error);
     return false;
   }
 };
@@ -48,9 +47,8 @@ const clearAuthData = (): void => {
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.USER_PROFILE);
-    console.log("Cleared invalid auth data from localStorage");
   } catch (error) {
-    console.error("Error clearing auth data:", error);
+    // Silent error handling
   }
 };
 
@@ -141,12 +139,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Initialize auth state from localStorage - WITH VALIDATION
   useEffect(() => {
-    console.log("🔍 AuthContext: Starting initialization with validation...");
-
     try {
       // First, validate if existing auth data is good
       if (!validateAuthData()) {
-        console.log("❌ AuthContext: Invalid auth data found, clearing...");
         clearAuthData();
         dispatch({ type: "SET_LOADING", payload: false });
         return;
@@ -156,17 +151,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const storedUser = authService.getStoredUser();
 
       if (token && storedUser) {
-        console.log("✅ AuthContext: Valid stored auth found, logging in");
         dispatch({
           type: "LOGIN_SUCCESS",
           payload: { user: storedUser, token },
         });
       } else {
-        console.log("❌ AuthContext: No stored auth found");
         dispatch({ type: "SET_LOADING", payload: false });
       }
     } catch (error) {
-      console.error("❌ AuthContext: Error during initialization:", error);
       clearAuthData();
       dispatch({ type: "SET_LOADING", payload: false });
     }
@@ -178,39 +170,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       dispatch({ type: "LOGIN_START" });
 
       // Use ONLY actual Railway API for login - no mocks
-      console.log("🔐 AuthContext: Starting login process...");
       const response = await authService.login(credentials);
-      console.log("🔐 AuthContext: AuthService response:", response);
 
       // Check if we got proper response structure
       if (!response.token) {
-        console.error("❌ AuthContext: No token in response!", response);
         throw new Error("Login failed: No token received from server");
       }
 
       if (!response.user) {
-        console.error("❌ AuthContext: No user in response!", response);
         throw new Error("Login failed: No user data received from server");
       }
 
-      console.log(
-        "✅ AuthContext: Login successful, dispatching success action"
-      );
       dispatch({
         type: "LOGIN_SUCCESS",
         payload: { user: response.user, token: response.token },
       });
-
-      // Verify the state was updated
-      setTimeout(() => {
-        const storedToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-        console.log(
-          "🔍 AuthContext: Token verification after login:",
-          storedToken ? storedToken.substring(0, 20) + "..." : "NO TOKEN"
-        );
-      }, 100);
     } catch (error) {
-      console.error("❌ AuthContext: Login failed:", error);
       dispatch({
         type: "LOGIN_FAILURE",
         payload: error instanceof Error ? error.message : "Login failed",
@@ -226,14 +201,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Use ONLY actual Railway API for registration - no mocks
       const response = await authService.register(signupData);
-      console.log("API registration successful:", response);
 
       dispatch({
         type: "LOGIN_SUCCESS",
         payload: { user: response.user, token: response.token },
       });
     } catch (error) {
-      console.error("API registration failed:", error);
       dispatch({
         type: "LOGIN_FAILURE",
         payload: error instanceof Error ? error.message : "Registration failed",
@@ -251,11 +224,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
       localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
       localStorage.removeItem(STORAGE_KEYS.USER_PROFILE);
-      console.log("Cleared authentication data from localStorage");
 
       dispatch({ type: "LOGOUT" });
     } catch (error) {
-      console.error("Logout error:", error);
       // Force logout even if API call fails
       localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
       localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);

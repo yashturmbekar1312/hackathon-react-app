@@ -69,7 +69,6 @@ class DashboardService {
       const params = filters ? this.formatFilters(filters) : undefined;
       return await apiService.get<DashboardData>('/dashboard', params, true);
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
       throw new Error('Failed to load dashboard data');
     }
   }
@@ -79,7 +78,6 @@ class DashboardService {
     try {
       return await apiService.get<DashboardData['financial']>('/dashboard/financial', undefined, true);
     } catch (error) {
-      console.error('Error fetching financial summary:', error);
       throw new Error('Failed to load financial summary');
     }
   }
@@ -94,7 +92,6 @@ class DashboardService {
       const params = filters ? this.formatFilters(filters) : undefined;
       return await apiService.getPaginated<DashboardActivity>('/dashboard/activities', page, limit, params);
     } catch (error) {
-      console.error('Error fetching activities:', error);
       throw new Error('Failed to load recent activities');
     }
   }
@@ -109,7 +106,6 @@ class DashboardService {
       const params = unreadOnly ? { unreadOnly: true } : undefined;
       return await apiService.getPaginated<DashboardAlert>('/dashboard/alerts', page, limit, params);
     } catch (error) {
-      console.error('Error fetching alerts:', error);
       throw new Error('Failed to load alerts');
     }
   }
@@ -119,7 +115,6 @@ class DashboardService {
     try {
       await apiService.patch(`/dashboard/alerts/${alertId}/read`);
     } catch (error) {
-      console.error('Error marking alert as read:', error);
       throw new Error('Failed to mark alert as read');
     }
   }
@@ -129,7 +124,6 @@ class DashboardService {
     try {
       await apiService.patch('/dashboard/alerts/read-all');
     } catch (error) {
-      console.error('Error marking all alerts as read:', error);
       throw new Error('Failed to mark all alerts as read');
     }
   }
@@ -139,7 +133,6 @@ class DashboardService {
     try {
       await apiService.delete(`/dashboard/alerts/${alertId}`);
     } catch (error) {
-      console.error('Error dismissing alert:', error);
       throw new Error('Failed to dismiss alert');
     }
   }
@@ -149,7 +142,6 @@ class DashboardService {
     try {
       return await apiService.post<DashboardData>('/dashboard/refresh');
     } catch (error) {
-      console.error('Error refreshing dashboard:', error);
       throw new Error('Failed to refresh dashboard');
     }
   }
@@ -179,7 +171,6 @@ class DashboardService {
 
       return await response.blob();
     } catch (error) {
-      console.error('Error exporting dashboard data:', error);
       throw new Error('Failed to export dashboard data');
     }
   }
@@ -200,7 +191,6 @@ class DashboardService {
       this.wsConnection = new WebSocket(wsUrl);
 
       this.wsConnection.onopen = () => {
-        console.log('🟢 Dashboard WebSocket connected');
         this.reconnectAttempts = 0;
       };
 
@@ -209,30 +199,25 @@ class DashboardService {
           const data = JSON.parse(event.data);
           onMessage(data);
         } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
-        }
+          }
       };
 
       this.wsConnection.onerror = (error) => {
-        console.error('🔴 Dashboard WebSocket error:', error);
         if (onError) onError(error);
       };
 
       this.wsConnection.onclose = (event) => {
-        console.log('🟡 Dashboard WebSocket disconnected');
         if (onClose) onClose(event);
         
         // Attempt to reconnect
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           setTimeout(() => {
             this.reconnectAttempts++;
-            console.log(`Attempting to reconnect... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
             this.connectWebSocket(onMessage, onError, onClose);
           }, this.reconnectDelay * Math.pow(2, this.reconnectAttempts));
         }
       };
     } catch (error) {
-      console.error('Error connecting WebSocket:', error);
       if (onError) onError(error as Event);
     }
   }
@@ -250,8 +235,7 @@ class DashboardService {
     if (this.wsConnection && this.wsConnection.readyState === WebSocket.OPEN) {
       this.wsConnection.send(JSON.stringify(message));
     } else {
-      console.warn('WebSocket is not connected');
-    }
+      }
   }
 
   // Get dashboard insights
@@ -264,7 +248,6 @@ class DashboardService {
     try {
       return await apiService.get('/dashboard/insights', undefined, true);
     } catch (error) {
-      console.error('Error fetching dashboard insights:', error);
       throw new Error('Failed to load dashboard insights');
     }
   }
@@ -300,3 +283,4 @@ class DashboardService {
 
 export const dashboardService = new DashboardService();
 export default dashboardService;
+

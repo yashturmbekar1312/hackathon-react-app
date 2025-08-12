@@ -37,18 +37,13 @@ const Login: React.FC = () => {
     setIsLoading(true);
     setError(null);
 
-    console.log('🔐 Login: Form submitted with data:', formData);
-
     try {
-      console.log('🔐 Login: Calling login function...');
       await login(formData);
-      console.log('🔐 Login: Login function completed successfully');
       toast.success("Login Successful", {
         description: "Welcome back!",
       });
       navigate("/dashboard");
     } catch (err) {
-      console.error('🔐 Login: Login failed with error:', err);
       const errorMessage = err instanceof Error ? err.message : "Login failed";
       setError(errorMessage);
       toast.error("Login Failed", {

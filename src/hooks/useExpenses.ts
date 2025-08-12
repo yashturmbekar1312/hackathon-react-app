@@ -62,10 +62,7 @@ export const useExpenses = () => {
       }
       
       // Call ONLY the actual API service - no mocks
-      console.log('useExpenses: Calling API expenseService.createTransaction');
       const newTransaction = await expenseService.createTransaction(transactionData);
-      console.log('useExpenses: API call successful, transaction created:', newTransaction);
-      
       setTransactions(prev => [newTransaction, ...prev]);
       return newTransaction;
     } catch (err) {
@@ -103,10 +100,7 @@ export const useExpenses = () => {
       }
       
       // Call ONLY the actual API service - no mocks
-      console.log('useExpenses: Calling API expenseService.createBudget');
       const newBudget = await expenseService.createBudget(budgetData);
-      console.log('useExpenses: API call successful, budget created:', newBudget);
-      
       setBudgets(prev => [...prev, newBudget]);
       return newBudget;
     } catch (err) {
@@ -126,10 +120,7 @@ export const useExpenses = () => {
       }
       
       // Call ONLY the actual API service - no mocks
-      console.log('useExpenses: Calling API expenseService.updateBudget');
       const updatedBudget = await expenseService.updateBudget(budgetId, budgetData);
-      console.log('useExpenses: API call successful, budget updated:', updatedBudget);
-      
       setBudgets(prev => 
         prev.map(budget => 
           budget.id === budgetId ? updatedBudget : budget
@@ -182,7 +173,6 @@ export const useExpenses = () => {
   // Get spending by category
   const getSpendingByCategory = (): { category: string; amount: number; percentage: number }[] => {
     if (!transactions || !Array.isArray(transactions)) {
-      console.warn('getSpendingByCategory: transactions is not available or not an array:', transactions);
       return [];
     }
     
@@ -206,7 +196,6 @@ export const useExpenses = () => {
   // Check budget alerts
   const getBudgetAlerts = () => {
     if (!budgets || !Array.isArray(budgets)) {
-      console.warn('getBudgetAlerts: budgets is not available or not an array:', budgets);
       return [];
     }
     return budgets.filter(budget => {
@@ -218,7 +207,6 @@ export const useExpenses = () => {
   // Check if budget is exceeded
   const getExceededBudgets = () => {
     if (!budgets || !Array.isArray(budgets)) {
-      console.warn('getExceededBudgets: budgets is not available or not an array:', budgets);
       return [];
     }
     return budgets.filter(budget => expenseService.isBudgetExceeded(budget));
@@ -251,3 +239,4 @@ export const useExpenses = () => {
     getExceededBudgets,
   };
 };
+

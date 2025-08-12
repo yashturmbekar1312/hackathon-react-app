@@ -15,12 +15,7 @@ const TokenTest: React.FC = () => {
     try {
       // Check what's in localStorage
       const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-      const user = localStorage.getItem(STORAGE_KEYS.USER_PROFILE);
       
-      console.log("🔍 Token Test - Current Storage:");
-      console.log("Access Token:", token ? token.substring(0, 30) + "..." : "NOT FOUND");
-      console.log("User Profile:", user ? "Found" : "NOT FOUND");
-
       if (!token) {
         setTestResult("❌ No access token found in localStorage");
         return;
@@ -32,7 +27,6 @@ const TokenTest: React.FC = () => {
       setTestResult(`✅ Token is working! API Response: ${JSON.stringify(response, null, 2)}`);
       
     } catch (error: any) {
-      console.error("Token test failed:", error);
       setTestResult(`❌ Token test failed: ${error.message}`);
     } finally {
       setIsLoading(false);
@@ -81,3 +75,4 @@ const TokenTest: React.FC = () => {
 };
 
 export default TokenTest;
+

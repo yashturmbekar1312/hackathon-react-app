@@ -15,22 +15,12 @@ import ExpenseTracking from "./pages/ExpenseTracking";
 import InvestmentSuggestions from "./pages/InvestmentSuggestions";
 import Settings from "./pages/Settings";
 
-// Import debug utilities
-import "./utils/debug";
 // import HealthCheck from './components/HealthCheck';
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, isLoading, user, token } = useAuth();
-
-  console.log('🛡️ ProtectedRoute: Current auth state:', { 
-    isAuthenticated, 
-    isLoading, 
-    hasUser: !!user, 
-    hasToken: !!token 
-  });
+  const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    console.log('🛡️ ProtectedRoute: Still loading, showing spinner');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -41,14 +31,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     );
   }
 
-  // Check authentication and redirect if needed
-  console.log('🛡️ ProtectedRoute: isAuthenticated =', isAuthenticated);
-  
   if (isAuthenticated) {
-    console.log('🛡️ ProtectedRoute: User is authenticated, rendering children');
     return <>{children}</>;
   } else {
-    console.log('🛡️ ProtectedRoute: User not authenticated, redirecting to login');
     return <Navigate to="/login" replace />;
   }
 };

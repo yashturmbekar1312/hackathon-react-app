@@ -41,18 +41,18 @@ class ExpenseService {
   }
 
   async createTransaction(transactionData: Omit<Transaction, 'id' | 'userId' | 'createdAt' | 'updatedAt'>): Promise<Transaction> {
-    console.log('expenseService: createTransaction called with data:', transactionData);
-    
     try {
       // Transform frontend Transaction to API payload format
       const amount = Math.abs(transactionData.amount);
       
-      // Generate a default GUID if no account ID is provided
-      const defaultGuid = "00000000-0000-0000-0000-000000000000";
-      
+      // Validate that bankAccountId is provided
+      if (!transactionData.bankAccountId) {
+        throw new Error('Bank account must be selected for transaction');
+      }
+
       const apiPayload = {
         request: {
-          linkedAccountId: transactionData.accountId || defaultGuid, // Use provided accountId or default GUID
+          linkedAccountId: transactionData.bankAccountId, // Use provided bankAccountId
           merchantId: null, // Will be set when merchant data is available
           categoryId: null, // Will be set when category mapping is available
           amount: Math.max(amount, 0.01), // Ensure minimum 0.01
@@ -70,11 +70,7 @@ class ExpenseService {
         }
       };
       
-      console.log('expenseService: Sending API payload:', apiPayload);
-      
       const result = await apiService.post<any>('/transactions', apiPayload);
-      console.log('expenseService: createTransaction API call successful:', result);
-      
       // Transform API response back to frontend Transaction format if needed
       // For now, create a Transaction object with the data we sent plus some defaults
       const createdTransaction: Transaction = {
@@ -90,7 +86,7 @@ class ExpenseService {
         merchant: transactionData.merchant,
         location: transactionData.location,
         tags: transactionData.tags,
-        accountId: apiPayload.request.linkedAccountId || undefined, // Use linkedAccountId from payload or undefined
+        accountId: transactionData.bankAccountId, // Use bankAccountId consistently
         isRecurring: transactionData.isRecurring,
         recurringId: transactionData.recurringId,
         bankAccountId: transactionData.bankAccountId,
@@ -101,18 +97,9 @@ class ExpenseService {
       
       return createdTransaction;
     } catch (error) {
-      console.error('expenseService: createTransaction API call failed:', error);
-      
       // Log more details about the error
       if (error && typeof error === 'object') {
         const apiError = error as any;
-        console.error('expenseService: Error details:', {
-          message: apiError.message,
-          response: apiError.response?.data,
-          status: apiError.response?.status,
-          code: apiError.code,
-        });
-        
         // If it's a validation error, provide more helpful message
         if (apiError.response?.status === 400 && apiError.response?.data?.errors) {
           const validationErrors = apiError.response.data.errors;
@@ -265,8 +252,6 @@ class ExpenseService {
       }
     };
     
-    console.log('Creating budget with API payload:', requestPayload);
-    
     const response = await apiService.post<any>('/Budgets', requestPayload);
     
     // Transform API response back to frontend Budget format
@@ -306,8 +291,6 @@ class ExpenseService {
       requestPayload.request[key as keyof typeof requestPayload.request] === undefined && 
       delete requestPayload.request[key as keyof typeof requestPayload.request]
     );
-    
-    console.log('Updating budget with API payload:', requestPayload);
     
     const response = await apiService.put<any>(`/Budgets/${budgetId}`, requestPayload);
     
@@ -556,3 +539,4 @@ class ExpenseService {
 
 export const expenseService = new ExpenseService();
 export default expenseService;
+

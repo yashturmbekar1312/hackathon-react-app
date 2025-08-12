@@ -152,7 +152,6 @@ const SalaryManagement: React.FC = () => {
 
       setIsEditing(false);
     } catch (error: any) {
-      console.error("Failed to save salary data:", error);
       toast.error(error.message || "Failed to save income information");
     }
   };
@@ -189,7 +188,6 @@ const SalaryManagement: React.FC = () => {
       // Refresh milestones
       fetchMilestones(activePlan.id);
     } catch (error: any) {
-      console.error("Failed to add savings goal:", error);
       toast.error(error.message || "Failed to add savings goal");
     }
   };
@@ -204,7 +202,6 @@ const SalaryManagement: React.FC = () => {
       // Refresh milestones
       fetchMilestones(activePlan.id);
     } catch (error: any) {
-      console.error("Failed to delete savings goal:", error);
       toast.error(error.message || "Failed to remove savings goal");
     }
   };
@@ -615,3 +612,4 @@ const SalaryManagement: React.FC = () => {
 };
 
 export default SalaryManagement;
+

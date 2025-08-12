@@ -131,12 +131,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({
 
   const handleLogout = async () => {
     try {
-      console.log('Logout button clicked');
       await logout();
-      console.log('Logout successful, navigating to login');
       navigate("/login", { replace: true });
     } catch (error) {
-      console.error('Logout failed:', error);
       // Force navigation even if logout fails
       navigate("/login", { replace: true });
     }
@@ -524,3 +521,4 @@ const AppLayout: React.FC<AppLayoutProps> = ({
 };
 
 export default AppLayout;
+

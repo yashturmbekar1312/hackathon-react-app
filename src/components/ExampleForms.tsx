@@ -20,8 +20,7 @@ export const CreateAccountForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const newAccount = await createAccount(formData);
-      console.log('Account created:', newAccount);
+      await createAccount(formData);
       // Reset form or redirect
       setFormData({
         accountName: '',
@@ -33,8 +32,7 @@ export const CreateAccountForm: React.FC = () => {
         currency: 'USD'
       });
     } catch (error) {
-      console.error('Failed to create account:', error);
-    }
+      }
   };
 
   return (
@@ -128,8 +126,7 @@ export const CreateTransactionForm: React.FC = () => {
         const accountList = await getAllAccounts();
         setAccounts(accountList || []);
       } catch (error) {
-        console.error('Failed to load accounts:', error);
-      }
+        }
     };
     loadAccounts();
   }, [getAllAccounts]);
@@ -137,11 +134,10 @@ export const CreateTransactionForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const newTransaction = await createTransaction({
+      await createTransaction({
         ...formData,
         transactionDate: new Date(formData.transactionDate).toISOString()
       });
-      console.log('Transaction created:', newTransaction);
       // Reset form
       setFormData({
         accountId: '',
@@ -156,8 +152,7 @@ export const CreateTransactionForm: React.FC = () => {
         tags: []
       });
     } catch (error) {
-      console.error('Failed to create transaction:', error);
-    }
+      }
   };
 
   return (
@@ -285,8 +280,7 @@ export const CreateBudgetForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const newBudget = await createBudget(formData);
-      console.log('Budget created:', newBudget);
+      await createBudget(formData);
       // Reset form
       setFormData({
         name: '',
@@ -299,8 +293,7 @@ export const CreateBudgetForm: React.FC = () => {
         isActive: true
       });
     } catch (error) {
-      console.error('Failed to create budget:', error);
-    }
+      }
   };
 
   return (
@@ -383,3 +376,4 @@ export const CreateBudgetForm: React.FC = () => {
     </Card>
   );
 };
+

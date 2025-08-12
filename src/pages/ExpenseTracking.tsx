@@ -88,8 +88,7 @@ const ExpenseTracking: React.FC = () => {
         alertThreshold: 80,
       });
     } catch (err) {
-      console.error("Failed to create budget:", err);
-    }
+      }
   };
 
   const handleTransactionSubmit = async (e: React.FormEvent) => {
@@ -128,8 +127,7 @@ const ExpenseTracking: React.FC = () => {
         linkedAccountId: "",
       });
     } catch (err) {
-      console.error("Failed to add transaction:", err);
-    }
+      }
   };
 
   const spendingByCategory = getSpendingByCategory();
@@ -945,3 +943,4 @@ const ExpenseTracking: React.FC = () => {
 };
 
 export default ExpenseTracking;
+
