@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosError } from 'axios';
+import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
 import { API_BASE_URL, TOKEN_STORAGE_KEY } from '../utils/constants';
 
 // Types for API responses
@@ -207,6 +207,11 @@ class ApiService {
     return withRetry ? this.retryRequest(requestFn) : requestFn();
   }
 
+  async patch<T>(url: string, data?: any, withRetry: boolean = false): Promise<T> {
+    const requestFn = () => this.api.patch<T>(url, data).then(response => response.data);
+    return withRetry ? this.retryRequest(requestFn) : requestFn();
+  }
+
   // Paginated requests
   async getPaginated<T>(
     url: string, 
@@ -247,20 +252,9 @@ class ApiService {
     this.refreshToken = token;
   }
 
-  // Add patch method
-  async patch<T>(url: string, data?: any, withRetry: boolean = false): Promise<T> {
-    const requestFn = () => this.api.patch<T>(url, data).then(response => response.data);
-    return withRetry ? this.retryRequest(requestFn) : requestFn();
-  }
-
   // Health check
   async healthCheck(): Promise<{ status: string; timestamp: string }> {
     return this.get<{ status: string; timestamp: string }>('/health');
-  }
-
-  // Get axios instance for custom operations
-  getAxiosInstance(): AxiosInstance {
-    return this.api;
   }
 }
 

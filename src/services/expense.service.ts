@@ -29,7 +29,7 @@ class ExpenseService {
   }
 
   async updateTransaction(transactionId: string, transactionData: Partial<Transaction>): Promise<Transaction> {
-    return await apiService.patch<Transaction>(`/transactions/${transactionId}`, transactionData);
+    return await apiService.put<Transaction>(`/transactions/${transactionId}`, transactionData);
   }
 
   async deleteTransaction(transactionId: string): Promise<void> {
@@ -37,7 +37,7 @@ class ExpenseService {
   }
 
   async categorizeTransaction(transactionId: string, category: TransactionCategory): Promise<Transaction> {
-    return await apiService.patch<Transaction>(`/transactions/${transactionId}/categorize`, { category });
+    return await apiService.put<Transaction>(`/transactions/${transactionId}/categorize`, { category });
   }
 
   // Bank Account Management
@@ -72,7 +72,7 @@ class ExpenseService {
   }
 
   async updateBudget(budgetId: string, budgetData: Partial<Budget>): Promise<Budget> {
-    return await apiService.patch<Budget>(`/budgets/${budgetId}`, budgetData);
+    return await apiService.put<Budget>(`/budgets/${budgetId}`, budgetData);
   }
 
   async deleteBudget(budgetId: string): Promise<void> {

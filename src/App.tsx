@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
@@ -7,6 +7,28 @@ import Dashboard from './pages/Dashboard';
 import SalaryManagement from './pages/SalaryManagement';
 import ExpenseTracking from './pages/ExpenseTracking';
 import InvestmentSuggestions from './pages/InvestmentSuggestions';
+import { enhancedAuthService } from './services/auth-enhanced.service';
+
+// Health Check Component
+const HealthCheck: React.FC = () => {
+  useEffect(() => {
+    // Perform health checks on app startup
+    const performHealthChecks = async () => {
+      try {
+        // Check if user session is still valid
+        if (enhancedAuthService.isAuthenticated()) {
+          await enhancedAuthService.validateSession();
+        }
+      } catch (error) {
+        console.error('Health check failed:', error);
+      }
+    };
+
+    performHealthChecks();
+  }, []);
+
+  return null;
+};
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
