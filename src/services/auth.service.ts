@@ -15,15 +15,45 @@ class AuthService {
    * POST /auth/register
    */
   async register(signupData: SignupData): Promise<AuthResponse> {
-    const response = await apiService.post<ApiResponse<AuthResponse>>('/auth/register', signupData);
+    const response = await apiService.post<ApiResponse<{
+      accessToken: string;
+      refreshToken: string;
+      expiresAt: string;
+      user: {
+        id: string;
+        email: string;
+        firstName: string;
+        lastName: string;
+        phoneNumber?: string;
+        isEmailVerified?: boolean;
+      };
+    }>>('/auth/register', signupData);
+    
+    // Extract the actual token and user from the response
+    const apiData = response.data;
+    const token = apiData.accessToken; // ← Use accessToken from API
+    const apiUser = apiData.user;
+    
+    // Transform the API user format to match your app's User type
+    const user = {
+      id: apiUser.id,
+      email: apiUser.email,
+      name: `${apiUser.firstName} ${apiUser.lastName}`, // ← Combine firstName + lastName
+      currency: 'USD', // ← Default values for missing fields
+      riskProfile: 'balanced' as any,
+      savingsThreshold: 5000,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
     
     // Store token and user data
-    if (response.data.token) {
-      localStorage.setItem(TOKEN_STORAGE_KEY, response.data.token);
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.data.user));
+    if (token) {
+      localStorage.setItem(TOKEN_STORAGE_KEY, token);
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
     }
     
-    return response.data;
+    // Return in the format expected by AuthContext
+    return { user, token };
   }
 
   /**
@@ -49,15 +79,61 @@ class AuthService {
    * POST /auth/login
    */
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await apiService.post<ApiResponse<AuthResponse>>('/auth/login', credentials);
+    console.log('🔐 AuthService: Login attempt with credentials:', { email: credentials.email });
+    
+    const response = await apiService.post<ApiResponse<{
+      accessToken: string;
+      refreshToken: string;
+      expiresAt: string;
+      user: {
+        id: string;
+        email: string;
+        firstName: string;
+        lastName: string;
+        phoneNumber?: string;
+        isEmailVerified?: boolean;
+      };
+    }>>('/auth/login', credentials);
+    
+    console.log('🔐 AuthService: Login API response:', response);
+    console.log('🔐 AuthService: Login data:', response.data);
+    
+    // Extract the actual token and user from the response
+    const apiData = response.data;
+    const token = apiData.accessToken; // ← Use accessToken from API
+    const apiUser = apiData.user;
+    
+    // Transform the API user format to match your app's User type
+    const user = {
+      id: apiUser.id,
+      email: apiUser.email,
+      name: `${apiUser.firstName} ${apiUser.lastName}`, // ← Combine firstName + lastName
+      currency: 'USD', // ← Default values for missing fields
+      riskProfile: 'balanced' as any,
+      savingsThreshold: 5000,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
     
     // Store token and user data
-    if (response.data.token) {
-      localStorage.setItem(TOKEN_STORAGE_KEY, response.data.token);
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.data.user));
+    if (token) {
+      console.log('💾 AuthService: Storing token:', token.substring(0, 20) + '...');
+      console.log('💾 AuthService: Storing user:', user);
+      
+      localStorage.setItem(TOKEN_STORAGE_KEY, token);
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+      
+      // Verify storage
+      const storedToken = localStorage.getItem(TOKEN_STORAGE_KEY);
+      const storedUser = localStorage.getItem(USER_STORAGE_KEY);
+      console.log('✅ AuthService: Token stored successfully:', storedToken ? storedToken.substring(0, 20) + '...' : 'FAILED');
+      console.log('✅ AuthService: User stored successfully:', storedUser ? JSON.parse(storedUser) : 'FAILED');
+    } else {
+      console.error('❌ AuthService: No token in response!', response.data);
     }
     
-    return response.data;
+    // Return in the format expected by AuthContext
+    return { user, token };
   }
 
   /**

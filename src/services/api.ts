@@ -57,8 +57,13 @@ class ApiService {
     this.api.interceptors.request.use(
       (config) => {
         const token = localStorage.getItem(TOKEN_STORAGE_KEY);
+        console.log('🔍 API Interceptor - Token from localStorage:', token ? `${token.substring(0, 20)}...` : 'NO TOKEN');
+        
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
+          console.log('✅ Authorization header set:', `Bearer ${token.substring(0, 20)}...`);
+        } else {
+          console.warn('⚠️ No token found in localStorage, request will be unauthenticated');
         }
 
         // Log requests in development
@@ -66,6 +71,7 @@ class ApiService {
           console.log(`🔵 API Request: ${config.method?.toUpperCase()} ${config.url}`, {
             data: config.data,
             params: config.params,
+            headers: config.headers,
           });
         }
 
@@ -94,6 +100,16 @@ class ApiService {
 
         // Handle token refresh for 401 errors
         if (error.response?.status === 401 && !originalRequest._retry) {
+          console.error('🔴 401 Unauthorized Error:', {
+            url: originalRequest.url,
+            method: originalRequest.method,
+            headers: originalRequest.headers,
+            responseData: error.response.data,
+          });
+          
+          const currentToken = localStorage.getItem(TOKEN_STORAGE_KEY);
+          console.error('🔴 Current token in localStorage:', currentToken ? currentToken.substring(0, 20) + '...' : 'NO TOKEN');
+          
           if (this.isRefreshing) {
             return new Promise((resolve, reject) => {
               this.failedQueue.push({ resolve, reject });

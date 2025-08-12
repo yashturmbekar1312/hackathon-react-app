@@ -97,6 +97,28 @@ class SalaryService {
     return plans.find(plan => plan.isActive) || null;
   }
 
+  async mockUpdateIncomePlan(planId: string, planData: IncomePlanFormData): Promise<SalaryPlan> {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const existingPlans = this.getMockPlans();
+    const planIndex = existingPlans.findIndex(plan => plan.id === planId);
+    
+    if (planIndex === -1) {
+      throw new Error('Plan not found');
+    }
+
+    const updatedPlan: SalaryPlan = {
+      ...existingPlans[planIndex],
+      ...planData,
+      updatedAt: new Date(),
+    };
+
+    existingPlans[planIndex] = updatedPlan;
+    localStorage.setItem('mock_salary_plans', JSON.stringify(existingPlans));
+    
+    return updatedPlan;
+  }
+
   async mockVerifySalaryReceipt(expectedDate: Date, actualAmount?: number): Promise<SalaryVerificationResult> {
     await new Promise(resolve => setTimeout(resolve, 1000));
     

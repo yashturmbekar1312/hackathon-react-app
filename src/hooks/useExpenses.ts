@@ -24,7 +24,8 @@ export const useExpenses = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const result = await expenseService.mockGetTransactions();
+      // Use real API instead of mock
+      const result = await expenseService.getTransactions();
       setTransactions(result.transactions);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch transactions');
@@ -40,7 +41,8 @@ export const useExpenses = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const budgetList = await expenseService.mockGetBudgets();
+      // Use real API instead of mock
+      const budgetList = await expenseService.getBudgets();
       setBudgets(budgetList);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch budgets');
@@ -53,13 +55,16 @@ export const useExpenses = () => {
   const addTransaction = async (transactionData: Omit<Transaction, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
     try {
       setError(null);
-      const newTransaction: Transaction = {
-        ...transactionData,
-        id: `trans_${Date.now()}`,
-        userId: user?.id || '',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      
+      // Check if user exists
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+      
+      // Call ONLY the actual API service - no mocks
+      console.log('useExpenses: Calling API expenseService.createTransaction');
+      const newTransaction = await expenseService.createTransaction(transactionData);
+      console.log('useExpenses: API call successful, transaction created:', newTransaction);
       
       setTransactions(prev => [newTransaction, ...prev]);
       return newTransaction;
@@ -150,19 +155,27 @@ export const useExpenses = () => {
 
   // Calculate totals
   const getTotalIncome = (): number => {
+    if (!transactions || !Array.isArray(transactions)) return 0;
     return expenseService.getTotalIncome(transactions);
   };
 
   const getTotalExpenses = (): number => {
+    if (!transactions || !Array.isArray(transactions)) return 0;
     return expenseService.getTotalExpenses(transactions);
   };
 
   const getNetSavings = (): number => {
+    if (!transactions || !Array.isArray(transactions)) return 0;
     return expenseService.getNetSavings(transactions);
   };
 
   // Get spending by category
   const getSpendingByCategory = (): { category: string; amount: number; percentage: number }[] => {
+    if (!transactions || !Array.isArray(transactions)) {
+      console.warn('getSpendingByCategory: transactions is not available or not an array:', transactions);
+      return [];
+    }
+    
     const expenses = transactions.filter(t => t.type === TransactionType.EXPENSE);
     const totalExpenses = Math.abs(expenses.reduce((sum, t) => sum + t.amount, 0));
     
@@ -182,6 +195,10 @@ export const useExpenses = () => {
 
   // Check budget alerts
   const getBudgetAlerts = () => {
+    if (!budgets || !Array.isArray(budgets)) {
+      console.warn('getBudgetAlerts: budgets is not available or not an array:', budgets);
+      return [];
+    }
     return budgets.filter(budget => {
       const utilization = expenseService.calculateBudgetUtilization(budget);
       return utilization >= budget.alertThreshold;
@@ -190,6 +207,10 @@ export const useExpenses = () => {
 
   // Check if budget is exceeded
   const getExceededBudgets = () => {
+    if (!budgets || !Array.isArray(budgets)) {
+      console.warn('getExceededBudgets: budgets is not available or not an array:', budgets);
+      return [];
+    }
     return budgets.filter(budget => expenseService.isBudgetExceeded(budget));
   };
 

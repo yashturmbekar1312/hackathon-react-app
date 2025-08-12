@@ -113,7 +113,7 @@ const Dashboard: React.FC = () => {
               <h3 className="text-lg font-medium text-yellow-800 mb-2">Budget Alerts</h3>
               {budgetAlerts.map((budget) => (
                 <p key={budget.id} className="text-sm text-yellow-700">
-                  {budget.category}: {((Math.abs(budget.spent) / budget.amount) * 100).toFixed(1)}% used
+                  {budget.category}: {((Math.abs(budget.spent) / (budget.budgetAmount || budget.amount || 1)) * 100).toFixed(1)}% used
                 </p>
               ))}
             </div>

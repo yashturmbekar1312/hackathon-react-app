@@ -21,12 +21,127 @@ class ExpenseService {
     startDate?: Date;
     endDate?: Date;
   }): Promise<{ transactions: Transaction[]; total: number }> {
-    return await apiService.get<{ transactions: Transaction[]; total: number }>('/transactions', params);
+    // The API returns: { success: true, data: [], pagination: {...} }
+    const response = await apiService.get<{
+      success: boolean;
+      data: any[];
+      pagination: {
+        page: number;
+        pageSize: number;
+        totalItems: number;
+        totalPages: number;
+      };
+    }>('/transactions', params);
+    
+    // Transform API response to match frontend expectations
+    return {
+      transactions: response.data || [], // Transform API data to Transaction objects if needed
+      total: response.pagination?.totalItems || 0
+    };
   }
 
   async createTransaction(transactionData: Omit<Transaction, 'id' | 'userId' | 'createdAt' | 'updatedAt'>): Promise<Transaction> {
-    return await apiService.post<Transaction>('/transactions', transactionData);
+    console.log('expenseService: createTransaction called with data:', transactionData);
+    
+    try {
+      // Transform frontend Transaction to API payload format
+      const amount = Math.abs(transactionData.amount);
+      const apiPayload = {
+        linkedAccountId: transactionData.accountId || "3fa85f64-5717-4562-b3fc-2c963f66afa6", // Use default GUID if not provided
+        merchantId: "3fa85f64-5717-4562-b3fc-2c963f66afa6", // Default merchant ID
+        categoryId: "3fa85f64-5717-4562-b3fc-2c963f66afa6", // Default category ID
+        amount: Math.max(amount, 0.01), // Ensure minimum 0.01
+        currencyCode: "USD", // Default currency
+        transactionType: transactionData.type === TransactionType.EXPENSE ? "Expense" : "Income",
+        description: transactionData.description,
+        referenceNumber: `REF_${Date.now()}`, // Generate reference number
+        transactionDate: transactionData.date.toISOString().split('T')[0], // YYYY-MM-DD format
+        postedDate: transactionData.date.toISOString().split('T')[0], // Same as transaction date
+        isRecurring: transactionData.isRecurring || false,
+        recurringFrequency: transactionData.isRecurring ? "Monthly" : "", // Default frequency if recurring
+        isTransfer: false, // Default to false
+        transferToAccountId: null, // Only set if it's a transfer
+        externalTransactionId: `EXT_${Date.now()}` // Generate external ID
+      };
+      
+      console.log('expenseService: Sending API payload:', apiPayload);
+      
+      const result = await apiService.post<any>('/transactions', apiPayload);
+      console.log('expenseService: createTransaction API call successful:', result);
+      
+      // Transform API response back to frontend Transaction format if needed
+      // For now, create a Transaction object with the data we sent plus some defaults
+      const createdTransaction: Transaction = {
+        id: result.id || `temp_${Date.now()}`,
+        userId: result.userId || 'current-user',
+        amount: transactionData.amount, // Keep original amount with sign
+        description: transactionData.description,
+        date: transactionData.date,
+        category: transactionData.category,
+        subcategory: transactionData.subcategory,
+        type: transactionData.type,
+        source: transactionData.source,
+        merchant: transactionData.merchant,
+        location: transactionData.location,
+        tags: transactionData.tags,
+        accountId: apiPayload.linkedAccountId, // Use linkedAccountId from payload
+        isRecurring: transactionData.isRecurring,
+        recurringId: transactionData.recurringId,
+        bankAccountId: transactionData.bankAccountId,
+        isManuallyClassified: transactionData.isManuallyClassified,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      return createdTransaction;
+    } catch (error) {
+      console.error('expenseService: createTransaction API call failed:', error);
+      
+      // Log more details about the error
+      if (error && typeof error === 'object') {
+        const apiError = error as any;
+        console.error('expenseService: Error details:', {
+          message: apiError.message,
+          response: apiError.response?.data,
+          status: apiError.response?.status,
+          code: apiError.code,
+        });
+        
+        // If it's a validation error, provide more helpful message
+        if (apiError.response?.status === 400 && apiError.response?.data?.errors) {
+          const validationErrors = apiError.response.data.errors;
+          const errorMessages = Object.entries(validationErrors)
+            .map(([field, messages]) => `${field}: ${(messages as string[]).join(', ')}`)
+            .join('; ');
+          
+          throw new Error(`Validation failed: ${errorMessages}`);
+        }
+      }
+      
+      throw error; // Re-throw to let upper layers handle it
+    }
   }
+
+  // Helper method to map frontend categories to API format
+  // private mapCategoryToApiFormat(category: TransactionCategory): string {
+  //   const categoryMap: Record<TransactionCategory, string> = {
+  //     [TransactionCategory.GROCERIES]: "Food",
+  //     [TransactionCategory.TRANSPORTATION]: "Transportation", 
+  //     [TransactionCategory.ENTERTAINMENT]: "Entertainment",
+  //     [TransactionCategory.UTILITIES]: "Utilities",
+  //     [TransactionCategory.HEALTHCARE]: "Healthcare",
+  //     [TransactionCategory.SHOPPING]: "Shopping",
+  //     [TransactionCategory.FOOD_DINING]: "Food",
+  //     [TransactionCategory.EDUCATION]: "Education",
+  //     [TransactionCategory.SALARY]: "Income",
+  //     [TransactionCategory.INVESTMENT]: "Investment",
+  //     [TransactionCategory.RENT]: "Housing",
+  //     [TransactionCategory.SAVINGS]: "Savings",
+  //     [TransactionCategory.OTHER]: "Other"
+  //   };
+    
+  //   return categoryMap[category] || "Other";
+  // }
 
   async updateTransaction(transactionId: string, transactionData: Partial<Transaction>): Promise<Transaction> {
     return await apiService.put<Transaction>(`/transactions/${transactionId}`, transactionData);
@@ -156,28 +271,43 @@ class ExpenseService {
     await new Promise(resolve => setTimeout(resolve, 500));
     
     const currentDate = new Date();
+    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    
     const mockBudgets: Budget[] = [
       {
         id: '1',
         userId: 'user_demo',
+        name: 'Monthly Groceries Budget',
         category: TransactionCategory.GROCERIES,
-        amount: 500,
+        budgetAmount: 500,
+        amount: 500, // Keep for backwards compatibility
         spent: 250,
+        period: 'Monthly',
+        startDate: startOfMonth.toISOString().split('T')[0],
+        endDate: endOfMonth.toISOString().split('T')[0],
         month: currentDate.getMonth() + 1,
         year: currentDate.getFullYear(),
         alertThreshold: 80,
+        isActive: true,
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
         id: '2',
         userId: 'user_demo',
+        name: 'Monthly Entertainment Budget',
         category: TransactionCategory.ENTERTAINMENT,
-        amount: 200,
+        budgetAmount: 200,
+        amount: 200, // Keep for backwards compatibility
         spent: 150,
+        period: 'Monthly',
+        startDate: startOfMonth.toISOString().split('T')[0],
+        endDate: endOfMonth.toISOString().split('T')[0],
         month: currentDate.getMonth() + 1,
         year: currentDate.getFullYear(),
         alertThreshold: 80,
+        isActive: true,
         createdAt: new Date(),
         updatedAt: new Date()
       }
@@ -255,7 +385,8 @@ class ExpenseService {
   }
 
   calculateBudgetUtilization(budget: Budget): number {
-    return budget.amount > 0 ? (Math.abs(budget.spent) / budget.amount) * 100 : 0;
+    const budgetValue = budget.budgetAmount || budget.amount || 0;
+    return budgetValue > 0 ? (Math.abs(budget.spent) / budgetValue) * 100 : 0;
   }
 
   isBudgetNearLimit(budget: Budget): boolean {

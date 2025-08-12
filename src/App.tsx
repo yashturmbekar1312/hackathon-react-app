@@ -8,6 +8,9 @@ import Dashboard from './pages/Dashboard';
 import SalaryManagement from './pages/SalaryManagement';
 import ExpenseTracking from './pages/ExpenseTracking';
 import InvestmentSuggestions from './pages/InvestmentSuggestions';
+
+// Import debug utilities
+import './utils/debug';
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -23,6 +26,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     );
   }
 
+  // Check authentication and redirect if needed
+  console.log('ProtectedRoute: isAuthenticated =', isAuthenticated);
+  
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 };
 

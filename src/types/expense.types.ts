@@ -5,8 +5,14 @@ export interface Transaction {
   description: string;
   date: Date;
   category: TransactionCategory;
+  subcategory?: string;
   type: TransactionType;
   source: TransactionSource;
+  merchant?: string;
+  location?: string;
+  tags?: string[];
+  transactionDate?: string;
+  accountId?: string;
   isRecurring: boolean;
   recurringId?: string;
   bankAccountId?: string;
@@ -31,12 +37,18 @@ export interface BankAccount {
 export interface Budget {
   id: string;
   userId: string;
+  name: string;
   category: TransactionCategory;
-  amount: number;
+  budgetAmount: number;
+  amount?: number; // Keep for backwards compatibility
   spent: number;
-  month: number;
-  year: number;
+  period: string; // "Monthly", "Weekly", etc.
+  startDate: string;
+  endDate: string;
+  month?: number; // Keep for backwards compatibility
+  year?: number; // Keep for backwards compatibility
   alertThreshold: number; // Percentage (e.g., 80 for 80%)
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

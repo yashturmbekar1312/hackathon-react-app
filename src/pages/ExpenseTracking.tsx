@@ -48,10 +48,26 @@ const ExpenseTracking: React.FC = () => {
     e.preventDefault();
     try {
       const currentDate = new Date();
+      const currentMonth = currentDate.getMonth() + 1;
+      const currentYear = currentDate.getFullYear();
+      
+      // Create start and end dates for the current month
+      const startDate = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-01`;
+      const lastDay = new Date(currentYear, currentMonth, 0).getDate();
+      const endDate = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${lastDay}`;
+      
       await createBudget({
-        ...budgetFormData,
-        month: currentDate.getMonth() + 1,
-        year: currentDate.getFullYear(),
+        name: `${budgetFormData.category} Budget - ${currentMonth}/${currentYear}`,
+        category: budgetFormData.category,
+        budgetAmount: budgetFormData.amount,
+        amount: budgetFormData.amount, // Keep for backwards compatibility
+        period: "Monthly",
+        startDate,
+        endDate,
+        month: currentMonth, // Keep for backwards compatibility
+        year: currentYear, // Keep for backwards compatibility
+        alertThreshold: budgetFormData.alertThreshold,
+        isActive: true,
       });
       setShowBudgetForm(false);
       setBudgetFormData({
@@ -66,6 +82,13 @@ const ExpenseTracking: React.FC = () => {
 
   const handleTransactionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate amount
+    if (transactionFormData.amount < 0.01) {
+      alert('Amount must be at least $0.01');
+      return;
+    }
+    
     try {
       await addTransaction({
         ...transactionFormData,
@@ -230,62 +253,85 @@ const ExpenseTracking: React.FC = () => {
 
         {/* Transaction Form Modal */}
         {showTransactionForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <Card className="w-full max-w-md mx-4">
-              <CardHeader>
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowTransactionForm(false);
+              }
+            }}
+          >
+            <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto relative">
+              {/* Close Button */}
+              <button
+                onClick={() => setShowTransactionForm(false)}
+                className="absolute top-4 right-4 z-10 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                type="button"
+                aria-label="Close modal"
+              >
+                ✕
+              </button>
+              
+              <CardHeader className="pr-12">
                 <CardTitle>Add Transaction</CardTitle>
                 <CardDescription>Record a new income or expense transaction</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleTransactionSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Description</label>
-                    <Input
-                      value={transactionFormData.description}
-                      onChange={(e) => setTransactionFormData(prev => ({ ...prev, description: e.target.value }))}
-                      placeholder="Enter transaction description"
-                      required
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Description</label>
+                      <Input
+                        value={transactionFormData.description}
+                        onChange={(e) => setTransactionFormData(prev => ({ ...prev, description: e.target.value }))}
+                        placeholder="Enter transaction description"
+                        required
+                        className="h-10"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Amount</label>
+                      <Input
+                        type="number"
+                        value={transactionFormData.amount}
+                        onChange={(e) => setTransactionFormData(prev => ({ ...prev, amount: parseFloat(e.target.value) || 0 }))}
+                        placeholder="Enter amount (min 0.01)"
+                        min={0.01}
+                        step={0.01}
+                        required
+                        className="h-10"
+                      />
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Amount</label>
-                    <Input
-                      type="number"
-                      value={transactionFormData.amount}
-                      onChange={(e) => setTransactionFormData(prev => ({ ...prev, amount: parseFloat(e.target.value) || 0 }))}
-                      placeholder="Enter amount"
-                      min={0}
-                      step={0.01}
-                      required
-                    />
-                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Type</label>
+                      <select
+                        value={transactionFormData.type}
+                        onChange={(e) => setTransactionFormData(prev => ({ ...prev, type: e.target.value as TransactionType }))}
+                        className="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value={TransactionType.INCOME}>Income</option>
+                        <option value={TransactionType.EXPENSE}>Expense</option>
+                      </select>
+                    </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Type</label>
-                    <select
-                      value={transactionFormData.type}
-                      onChange={(e) => setTransactionFormData(prev => ({ ...prev, type: e.target.value as TransactionType }))}
-                      className="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value={TransactionType.INCOME}>Income</option>
-                      <option value={TransactionType.EXPENSE}>Expense</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Category</label>
-                    <select
-                      value={transactionFormData.category}
-                      onChange={(e) => setTransactionFormData(prev => ({ ...prev, category: e.target.value as TransactionCategory }))}
-                      className="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      {Object.values(TransactionCategory).map(category => (
-                        <option key={category} value={category}>
-                          {category.charAt(0).toUpperCase() + category.slice(1).replace('_', ' ')}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Category</label>
+                      <select
+                        value={transactionFormData.category}
+                        onChange={(e) => setTransactionFormData(prev => ({ ...prev, category: e.target.value as TransactionCategory }))}
+                        className="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        {Object.values(TransactionCategory).map(category => (
+                          <option key={category} value={category}>
+                            {category.charAt(0).toUpperCase() + category.slice(1).replace('_', ' ')}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -295,20 +341,25 @@ const ExpenseTracking: React.FC = () => {
                       value={transactionFormData.date}
                       onChange={(e) => setTransactionFormData(prev => ({ ...prev, date: e.target.value }))}
                       required
+                      className="h-10"
                     />
                   </div>
 
-                  <div className="flex space-x-3">
+                  <div className="flex flex-col sm:flex-row gap-3 pt-2">
                     <Button
                       type="button"
                       variant="outline"
                       onClick={() => setShowTransactionForm(false)}
-                      className="flex-1"
+                      className="flex-1 order-2 sm:order-1"
                     >
                       Cancel
                     </Button>
-                    <Button type="submit" className="flex-1" disabled={isLoading}>
-                      Add Transaction
+                    <Button 
+                      type="submit" 
+                      className="flex-1 order-1 sm:order-2" 
+                      disabled={isLoading}
+                    >
+                      {isLoading ? 'Adding...' : 'Add Transaction'}
                     </Button>
                   </div>
                 </form>
@@ -337,7 +388,7 @@ const ExpenseTracking: React.FC = () => {
               ) : (
                 <div className="space-y-4">
                   {budgets.map((budget) => {
-                    const utilization = budget.amount > 0 ? (Math.abs(budget.spent) / budget.amount) * 100 : 0;
+                    const utilization = (budget.amount && budget.amount > 0) ? (Math.abs(budget.spent || 0) / budget.amount) * 100 : 0;
                     const isNearLimit = utilization >= budget.alertThreshold;
                     const isOverBudget = utilization >= 100;
                     
@@ -355,7 +406,7 @@ const ExpenseTracking: React.FC = () => {
                         </div>
                         <div className="flex justify-between text-sm text-gray-600 mb-2">
                           <span>Spent: {formatCurrency(Math.abs(budget.spent))}</span>
-                          <span>Budget: {formatCurrency(budget.amount)}</span>
+                          <span>Budget: {formatCurrency(budget.amount || 0)}</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div

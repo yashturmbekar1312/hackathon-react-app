@@ -56,6 +56,29 @@ export const useSalary = () => {
     }
   };
 
+  // Update income plan
+  const updateIncomePlan = async (planId: string, planData: IncomePlanFormData): Promise<SalaryPlan> => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const updatedPlan = await salaryService.mockUpdateIncomePlan(planId, planData);
+      
+      // Update local state
+      setSalaryPlans(prev => prev.map(plan => plan.id === planId ? updatedPlan : plan));
+      if (activePlan?.id === planId) {
+        setActivePlan(updatedPlan);
+      }
+      
+      return updatedPlan;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update income plan';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Verify salary receipt
   const verifySalaryReceipt = async (expectedDate: Date, actualAmount?: number): Promise<SalaryVerificationResult> => {
     try {
@@ -115,6 +138,7 @@ export const useSalary = () => {
     isLoading,
     error,
     createIncomePlan,
+    updateIncomePlan,
     verifySalaryReceipt,
     fetchSalaryPlans,
     getNextPayDate,

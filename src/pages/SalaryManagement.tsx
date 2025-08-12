@@ -1,42 +1,70 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
 import { useAuth } from '../context/AuthContext';
 import { useSalary } from '../hooks/useSalary';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { IncomePlanFormData, PayCycle } from '../types/salary.types';
+import { toast } from 'sonner';
+
+// Validation schema for income plan
+const incomePlanValidationSchema = Yup.object({
+  employer: Yup.string()
+    .min(2, 'Employer name must be at least 2 characters')
+    .max(100, 'Employer name must be less than 100 characters')
+    .required('Employer name is required'),
+  expectedNetSalary: Yup.number()
+    .min(0, 'Salary must be a positive number')
+    .max(10000000, 'Salary amount seems too high')
+    .required('Expected salary is required'),
+  currency: Yup.string()
+    .oneOf(['USD', 'EUR', 'GBP', 'INR', 'CAD', 'AUD'], 'Please select a valid currency')
+    .required('Currency is required'),
+  payCycle: Yup.string()
+    .oneOf([PayCycle.WEEKLY, PayCycle.BIWEEKLY, PayCycle.MONTHLY, PayCycle.QUARTERLY], 'Please select a valid pay cycle')
+    .required('Pay cycle is required'),
+  payDay: Yup.number()
+    .min(1, 'Pay day must be between 1 and 31')
+    .max(31, 'Pay day must be between 1 and 31')
+    .integer('Pay day must be a whole number')
+    .required('Pay day is required'),
+});
 
 const SalaryManagement: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { activePlan, createIncomePlan, isLoading, error, getNextPayDate, getMonthlyIncome } = useSalary();
+  const { activePlan, createIncomePlan, updateIncomePlan, isLoading, getNextPayDate, getMonthlyIncome } = useSalary();
   const [showForm, setShowForm] = useState(!activePlan);
-  const [formData, setFormData] = useState<IncomePlanFormData>({
-    employer: '',
-    expectedNetSalary: 0,
-    payCycle: PayCycle.MONTHLY,
-    payDay: 1,
-    currency: user?.currency || 'USD',
-  });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'expectedNetSalary' || name === 'payDay' 
-        ? parseFloat(value) || 0 
-        : value,
-    }));
+  const initialFormData: IncomePlanFormData = {
+    employer: activePlan?.employer || '',
+    expectedNetSalary: activePlan?.expectedNetSalary || 0,
+    payCycle: activePlan?.payCycle || PayCycle.MONTHLY,
+    payDay: activePlan?.payDay || 1,
+    currency: activePlan?.currency || user?.currency || 'USD',
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (values: IncomePlanFormData) => {
     try {
-      await createIncomePlan(formData);
+      if (activePlan) {
+        await updateIncomePlan(activePlan.id, values);
+      } else {
+        await createIncomePlan(values);
+      }
+      toast.success(
+        activePlan ? 'Income Plan Updated' : 'Income Plan Created',
+        { description: 'Your salary information has been saved successfully.' }
+      );
       setShowForm(false);
     } catch (err) {
-      console.error('Failed to create income plan:', err);
+      console.error('Failed to save income plan:', err);
+      toast.error(
+        'Failed to Save',
+        { description: err instanceof Error ? err.message : 'Please try again.' }
+      );
     }
   };
 
@@ -145,129 +173,134 @@ const SalaryManagement: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {error && (
-                  <div className="bg-red-50 border border-red-200 rounded-md p-3">
-                    <p className="text-sm text-red-600">{error}</p>
-                  </div>
+              <Formik
+                initialValues={initialFormData}
+                validationSchema={incomePlanValidationSchema}
+                onSubmit={handleSubmit}
+                enableReinitialize
+              >
+                {({ errors, touched, isSubmitting }) => (
+                  <Form className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label htmlFor="employer" className="text-sm font-medium text-gray-700">
+                          Employer Name
+                        </label>
+                        <Field
+                          as={Input}
+                          id="employer"
+                          name="employer"
+                          type="text"
+                          placeholder="Enter your employer name"
+                          className={errors.employer && touched.employer ? 'border-red-500' : ''}
+                        />
+                        <ErrorMessage name="employer" component="div" className="text-sm text-red-600" />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="currency" className="text-sm font-medium text-gray-700">
+                          Currency
+                        </label>
+                        <Field
+                          as="select"
+                          id="currency"
+                          name="currency"
+                          className={`w-full h-10 px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                            errors.currency && touched.currency ? 'border-red-500' : 'border-gray-300'
+                          }`}
+                        >
+                          <option value="USD">USD - US Dollar</option>
+                          <option value="EUR">EUR - Euro</option>
+                          <option value="GBP">GBP - British Pound</option>
+                          <option value="INR">INR - Indian Rupee</option>
+                          <option value="CAD">CAD - Canadian Dollar</option>
+                          <option value="AUD">AUD - Australian Dollar</option>
+                        </Field>
+                        <ErrorMessage name="currency" component="div" className="text-sm text-red-600" />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label htmlFor="expectedNetSalary" className="text-sm font-medium text-gray-700">
+                          Expected Net Salary
+                        </label>
+                        <Field
+                          as={Input}
+                          id="expectedNetSalary"
+                          name="expectedNetSalary"
+                          type="number"
+                          placeholder="Enter your net salary"
+                          min={0}
+                          step={0.01}
+                          className={errors.expectedNetSalary && touched.expectedNetSalary ? 'border-red-500' : ''}
+                        />
+                        <ErrorMessage name="expectedNetSalary" component="div" className="text-sm text-red-600" />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="payCycle" className="text-sm font-medium text-gray-700">
+                          Pay Cycle
+                        </label>
+                        <Field
+                          as="select"
+                          id="payCycle"
+                          name="payCycle"
+                          className={`w-full h-10 px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                            errors.payCycle && touched.payCycle ? 'border-red-500' : 'border-gray-300'
+                          }`}
+                        >
+                          <option value={PayCycle.WEEKLY}>Weekly</option>
+                          <option value={PayCycle.BIWEEKLY}>Bi-weekly</option>
+                          <option value={PayCycle.MONTHLY}>Monthly</option>
+                          <option value={PayCycle.QUARTERLY}>Quarterly</option>
+                        </Field>
+                        <ErrorMessage name="payCycle" component="div" className="text-sm text-red-600" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="payDay" className="text-sm font-medium text-gray-700">
+                        Pay Day (Day of Month)
+                      </label>
+                      <Field
+                        as={Input}
+                        id="payDay"
+                        name="payDay"
+                        type="number"
+                        placeholder="Enter pay day (1-31)"
+                        min={1}
+                        max={31}
+                        className={errors.payDay && touched.payDay ? 'border-red-500' : ''}
+                      />
+                      <ErrorMessage name="payDay" component="div" className="text-sm text-red-600" />
+                      <p className="text-xs text-gray-500">
+                        Enter the day of the month you receive your salary (e.g., 15 for the 15th)
+                      </p>
+                    </div>
+
+                    <div className="flex space-x-4">
+                      {activePlan && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setShowForm(false)}
+                          className="flex-1"
+                        >
+                          Cancel
+                        </Button>
+                      )}
+                      <Button
+                        type="submit"
+                        disabled={isSubmitting || isLoading}
+                        className="flex-1"
+                      >
+                        {isLoading ? 'Saving...' : (activePlan ? 'Update Plan' : 'Create Plan')}
+                      </Button>
+                    </div>
+                  </Form>
                 )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label htmlFor="employer" className="text-sm font-medium text-gray-700">
-                      Employer Name
-                    </label>
-                    <Input
-                      id="employer"
-                      name="employer"
-                      type="text"
-                      placeholder="Enter your employer name"
-                      value={formData.employer}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label htmlFor="currency" className="text-sm font-medium text-gray-700">
-                      Currency
-                    </label>
-                    <select
-                      id="currency"
-                      name="currency"
-                      value={formData.currency}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="USD">USD - US Dollar</option>
-                      <option value="EUR">EUR - Euro</option>
-                      <option value="GBP">GBP - British Pound</option>
-                      <option value="INR">INR - Indian Rupee</option>
-                      <option value="CAD">CAD - Canadian Dollar</option>
-                      <option value="AUD">AUD - Australian Dollar</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label htmlFor="expectedNetSalary" className="text-sm font-medium text-gray-700">
-                      Expected Net Salary
-                    </label>
-                    <Input
-                      id="expectedNetSalary"
-                      name="expectedNetSalary"
-                      type="number"
-                      placeholder="Enter your net salary"
-                      value={formData.expectedNetSalary}
-                      onChange={handleInputChange}
-                      required
-                      min={0}
-                      step={0.01}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label htmlFor="payCycle" className="text-sm font-medium text-gray-700">
-                      Pay Cycle
-                    </label>
-                    <select
-                      id="payCycle"
-                      name="payCycle"
-                      value={formData.payCycle}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value={PayCycle.WEEKLY}>Weekly</option>
-                      <option value={PayCycle.BIWEEKLY}>Bi-weekly</option>
-                      <option value={PayCycle.MONTHLY}>Monthly</option>
-                      <option value={PayCycle.QUARTERLY}>Quarterly</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label htmlFor="payDay" className="text-sm font-medium text-gray-700">
-                    Pay Day (Day of Month)
-                  </label>
-                  <Input
-                    id="payDay"
-                    name="payDay"
-                    type="number"
-                    placeholder="Enter pay day (1-31)"
-                    value={formData.payDay}
-                    onChange={handleInputChange}
-                    required
-                    min={1}
-                    max={31}
-                  />
-                  <p className="text-xs text-gray-500">
-                    Enter the day of the month you receive your salary (e.g., 15 for the 15th)
-                  </p>
-                </div>
-
-                <div className="flex space-x-4">
-                  {activePlan && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setShowForm(false)}
-                      className="flex-1"
-                    >
-                      Cancel
-                    </Button>
-                  )}
-                  <Button
-                    type="submit"
-                    disabled={isLoading}
-                    className="flex-1"
-                  >
-                    {isLoading ? 'Saving...' : (activePlan ? 'Update Plan' : 'Create Plan')}
-                  </Button>
-                </div>
-              </form>
+              </Formik>
             </CardContent>
           </Card>
         )}
