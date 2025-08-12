@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
-import { AuthState, User, LoginCredentials, SignupData, LoginRequest } from '../types/auth.types';
-import { authApiService } from '../api/endpoints/auth.api';
+import { AuthState, User, LoginCredentials, SignupData } from '../types/auth.types';
+import { authService } from '../services/auth.service';
 
 // Auth Context
 interface AuthContextType extends AuthState {
