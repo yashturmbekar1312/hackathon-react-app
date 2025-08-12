@@ -59,7 +59,7 @@ const Dashboard: React.FC = () => {
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
-      currency: user?.currency || "INR",
+      currency: "INR",
     }).format(amount);
   };
 
@@ -125,9 +125,12 @@ const Dashboard: React.FC = () => {
                       {budget.category}
                     </span>
                     <span className="text-sm text-warning-700">
-                      {budget.amount ? ((Math.abs(budget.spent) / budget.amount) * 100).toFixed(
-                        1
-                      ) : 0}
+                      {budget.amount
+                        ? (
+                            (Math.abs(budget.spent) / budget.amount) *
+                            100
+                          ).toFixed(1)
+                        : 0}
                       % used
                     </span>
                   </div>
@@ -241,7 +244,9 @@ const Dashboard: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           <Card variant="gradient" className="animate-slide-up">
             <CardHeader>
-              <CardTitle className="text-gradient">Savings Projection</CardTitle>
+              <CardTitle className="text-gradient">
+                Savings Projection
+              </CardTitle>
               <CardDescription>
                 Based on your current savings rate
               </CardDescription>
@@ -251,26 +256,39 @@ const Dashboard: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-neutral-600">6 months</span>
                   <span className="font-semibold">
-                    {formatCurrency(savingsProjection.currentSavings + (savingsProjection.surplusAmount * 6))}
+                    {formatCurrency(
+                      savingsProjection.currentSavings +
+                        savingsProjection.surplusAmount * 6
+                    )}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-neutral-600">1 year</span>
                   <span className="font-semibold">
-                    {formatCurrency(savingsProjection.currentSavings + (savingsProjection.surplusAmount * 12))}
+                    {formatCurrency(
+                      savingsProjection.currentSavings +
+                        savingsProjection.surplusAmount * 12
+                    )}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-neutral-600">5 years</span>
                   <span className="font-semibold">
-                    {formatCurrency(savingsProjection.currentSavings + (savingsProjection.surplusAmount * 60))}
+                    {formatCurrency(
+                      savingsProjection.currentSavings +
+                        savingsProjection.surplusAmount * 60
+                    )}
                   </span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card variant="gradient" className="animate-slide-up" style={{ animationDelay: "0.1s" }}>
+          <Card
+            variant="gradient"
+            className="animate-slide-up"
+            style={{ animationDelay: "0.1s" }}
+          >
             <CardHeader>
               <CardTitle className="text-gradient">Quick Actions</CardTitle>
               <CardDescription>
@@ -282,33 +300,63 @@ const Dashboard: React.FC = () => {
                 <Button
                   variant="primary"
                   size="sm"
-                  onClick={() => navigate('/salary')}
+                  onClick={() => navigate("/salary")}
                   className="flex-col h-auto py-4"
                 >
-                  <svg className="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                  <svg
+                    className="w-6 h-6 mb-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+                    />
                   </svg>
                   Manage Income
                 </Button>
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => navigate('/expenses')}
+                  onClick={() => navigate("/expenses")}
                   className="flex-col h-auto py-4"
                 >
-                  <svg className="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <svg
+                    className="w-6 h-6 mb-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+                    />
                   </svg>
                   Track Expenses
                 </Button>
                 <Button
                   variant="success"
                   size="sm"
-                  onClick={() => navigate('/investments')}
+                  onClick={() => navigate("/investments")}
                   className="flex-col h-auto py-4 col-span-2"
                 >
-                  <svg className="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  <svg
+                    className="w-6 h-6 mb-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                    />
                   </svg>
                   Investment Insights
                 </Button>
@@ -322,7 +370,9 @@ const Dashboard: React.FC = () => {
       {dashboardData.monthlyIncome === 0 && (
         <Card variant="glass" className="animate-fade-in-up">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-gradient">Welcome to Wealthify!</CardTitle>
+            <CardTitle className="text-2xl text-gradient">
+              Welcome to Wealthify!
+            </CardTitle>
             <CardDescription>
               Let's get you started on your financial journey
             </CardDescription>
@@ -330,18 +380,29 @@ const Dashboard: React.FC = () => {
           <CardContent className="text-center">
             <div className="space-y-6">
               <div className="w-20 h-20 mx-auto bg-gradient-to-br from-brand-500 to-success-500 rounded-2xl flex items-center justify-center">
-                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <svg
+                  className="w-10 h-10 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
                 </svg>
               </div>
               <div className="space-y-4">
                 <p className="text-neutral-600">
-                  Start by setting up your income information to begin tracking your financial progress.
+                  Start by setting up your income information to begin tracking
+                  your financial progress.
                 </p>
                 <Button
                   variant="primary"
                   size="lg"
-                  onClick={() => navigate('/salary')}
+                  onClick={() => navigate("/salary")}
                   className="w-full"
                 >
                   Set Up Your Income

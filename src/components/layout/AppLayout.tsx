@@ -171,7 +171,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 <div className="w-px h-6 bg-slate-300"></div>
                 <div className="text-sm">
                   <span className="text-slate-500 font-medium">Portfolio:</span>
-                  <span className="text-slate-800 font-bold ml-1">$12,450</span>
+                  <span className="text-slate-800 font-bold ml-1">
+                    ₹10,24,500
+                  </span>
                 </div>
                 <div className="text-sm">
                   <span className="text-success-600 font-bold">+2.4%</span>

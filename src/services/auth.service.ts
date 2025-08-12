@@ -39,9 +39,9 @@ class AuthService {
       id: apiUser.id,
       email: apiUser.email,
       name: `${apiUser.firstName} ${apiUser.lastName}`, // ← Combine firstName + lastName
-      currency: 'USD', // ← Default values for missing fields
+      currency: 'INR', // ← Default values for missing fields
       riskProfile: 'balanced' as any,
-      savingsThreshold: 5000,
+      savingsThreshold: 50000,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -108,9 +108,9 @@ class AuthService {
       id: apiUser.id,
       email: apiUser.email,
       name: `${apiUser.firstName} ${apiUser.lastName}`, // ← Combine firstName + lastName
-      currency: 'USD', // ← Default values for missing fields
+      currency: 'INR', // ← Default values for missing fields
       riskProfile: 'balanced' as any,
-      savingsThreshold: 5000,
+      savingsThreshold: 50000,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -287,9 +287,9 @@ class AuthService {
         id: 'user_demo',
         email: credentials.email,
         name: 'Demo User',
-        currency: 'USD',
+        currency: 'INR',
         riskProfile: 'balanced' as any,
-        savingsThreshold: 5000,
+        savingsThreshold: 50000,
         createdAt: new Date(),
         updatedAt: new Date()
       };

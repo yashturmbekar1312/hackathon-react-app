@@ -100,7 +100,9 @@ const Signup: React.FC = () => {
 
     const passwordStrength = checkPasswordStrength(password);
     if (passwordStrength.score < 5) {
-      toast.error(`Password requirements: ${passwordStrength.feedback.join(", ")}`);
+      toast.error(
+        `Password requirements: ${passwordStrength.feedback.join(", ")}`
+      );
       return false;
     }
 
@@ -139,9 +141,9 @@ const Signup: React.FC = () => {
   };
 
   const handleInputChange = (field: keyof SignupData, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -196,11 +198,15 @@ const Signup: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-brand-primary-50 via-brand-accent-50 to-brand-secondary-50 flex items-center justify-center p-4">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-20"></div>
-      
+
       <div className="relative w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <img src={logo} alt="Wealthify" className="h-12 w-auto mx-auto mb-4" />
+          <img
+            src={logo}
+            alt="Wealthify"
+            className="h-12 w-auto mx-auto mb-4"
+          />
           <h1 className="text-2xl font-bold text-brand-dark">Join Wealthify</h1>
           <p className="text-brand-muted mt-2">
             Start your journey to financial freedom
@@ -208,23 +214,29 @@ const Signup: React.FC = () => {
         </div>
 
         {/* Progress Indicator */}
-        <div className="flex items-center justify-center mb-6">
-          <div className="flex items-center space-x-2">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-              currentStep >= 1 
-                ? 'bg-brand-primary text-white' 
-                : 'bg-white text-brand-muted'
-            }`}>
+        <div className="mb-6">
+          <div className="flex items-center justify-center space-x-2">
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+                currentStep >= 1
+                  ? "bg-brand-primary text-white"
+                  : "bg-white text-brand-muted"
+              }`}
+            >
               1
             </div>
-            <div className={`w-12 h-0.5 transition-colors ${
-              currentStep >= 2 ? 'bg-brand-primary' : 'bg-gray-200'
-            }`}></div>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-              currentStep >= 2 
-                ? 'bg-brand-primary text-white' 
-                : 'bg-white text-brand-muted'
-            }`}>
+            <div
+              className={`w-12 h-0.5 transition-colors ${
+                currentStep >= 2 ? "bg-brand-primary" : "bg-gray-200"
+              }`}
+            ></div>
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+                currentStep >= 2
+                  ? "bg-brand-primary text-white"
+                  : "bg-white text-brand-muted"
+              }`}
+            >
               2
             </div>
           </div>
@@ -237,10 +249,9 @@ const Signup: React.FC = () => {
               {currentStep === 1 ? "Account Information" : "Personal Details"}
             </h2>
             <p className="text-sm text-brand-muted">
-              {currentStep === 1 
-                ? "Create your secure account" 
-                : "Complete your profile"
-              }
+              {currentStep === 1
+                ? "Create your secure account"
+                : "Complete your profile"}
             </p>
           </CardHeader>
 
@@ -255,7 +266,9 @@ const Signup: React.FC = () => {
                         type="text"
                         placeholder="First Name"
                         value={formData.firstName}
-                        onChange={(e) => handleInputChange("firstName", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("firstName", e.target.value)
+                        }
                         required
                       />
                     </div>
@@ -264,7 +277,9 @@ const Signup: React.FC = () => {
                         type="text"
                         placeholder="Last Name"
                         value={formData.lastName}
-                        onChange={(e) => handleInputChange("lastName", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("lastName", e.target.value)
+                        }
                         required
                       />
                     </div>
@@ -283,7 +298,9 @@ const Signup: React.FC = () => {
                       type={showPassword ? "text" : "password"}
                       placeholder="Password"
                       value={formData.password}
-                      onChange={(e) => handleInputChange("password", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("password", e.target.value)
+                      }
                       required
                     />
                     <button
@@ -305,11 +322,11 @@ const Signup: React.FC = () => {
                             className={`h-1 flex-1 rounded-full transition-colors ${
                               level <= passwordStrength.score
                                 ? passwordStrength.score <= 2
-                                  ? 'bg-red-400'
+                                  ? "bg-red-400"
                                   : passwordStrength.score <= 3
-                                  ? 'bg-yellow-400'
-                                  : 'bg-green-400'
-                                : 'bg-gray-200'
+                                  ? "bg-yellow-400"
+                                  : "bg-green-400"
+                                : "bg-gray-200"
                             }`}
                           />
                         ))}
@@ -327,23 +344,23 @@ const Signup: React.FC = () => {
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="Confirm Password"
                       value={formData.confirmPassword}
-                      onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("confirmPassword", e.target.value)
+                      }
                       required
                     />
                     <button
                       type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-brand-muted hover:text-brand-dark transition-colors"
                     >
                       {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
                     </button>
                   </div>
 
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={isLoading}
-                  >
+                  <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Processing..." : "Continue"}
                   </Button>
                 </>
@@ -354,7 +371,9 @@ const Signup: React.FC = () => {
                     type="tel"
                     placeholder="Phone Number"
                     value={formData.phoneNumber}
-                    onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("phoneNumber", e.target.value)
+                    }
                     required
                   />
 
@@ -362,7 +381,9 @@ const Signup: React.FC = () => {
                     type="date"
                     placeholder="Date of Birth"
                     value={formData.dateOfBirth}
-                    onChange={(e) => handleInputChange("dateOfBirth", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("dateOfBirth", e.target.value)
+                    }
                     required
                   />
 
@@ -370,7 +391,9 @@ const Signup: React.FC = () => {
                     type="text"
                     placeholder="Occupation"
                     value={formData.occupation}
-                    onChange={(e) => handleInputChange("occupation", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("occupation", e.target.value)
+                    }
                     required
                   />
 
@@ -378,7 +401,9 @@ const Signup: React.FC = () => {
                     type="number"
                     placeholder="Annual Income (INR)"
                     value={formData.annualIncome}
-                    onChange={(e) => handleInputChange("annualIncome", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("annualIncome", e.target.value)
+                    }
                     required
                   />
 
@@ -422,11 +447,17 @@ const Signup: React.FC = () => {
         <div className="mt-6 text-center">
           <p className="text-xs text-brand-muted">
             By creating an account, you agree to our{" "}
-            <a href="#" className="underline hover:text-brand-primary transition-colors">
+            <a
+              href="#"
+              className="underline hover:text-brand-primary transition-colors"
+            >
               Terms of Service
             </a>{" "}
             and{" "}
-            <a href="#" className="underline hover:text-brand-primary transition-colors">
+            <a
+              href="#"
+              className="underline hover:text-brand-primary transition-colors"
+            >
               Privacy Policy
             </a>
           </p>

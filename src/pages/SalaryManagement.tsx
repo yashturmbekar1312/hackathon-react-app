@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import AppLayout from "../components/layout/AppLayout";
+import BankAccountManager from "../components/BankAccountManager";
 import {
   Card,
   CardContent,
@@ -10,6 +11,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { useIncomePlans } from "../hooks/useIncomePlans";
 import { useAuth } from "../context/AuthContext";
+import { useBankAccounts } from "../hooks/useBankAccounts";
 import { IncomeFrequency } from "../types/income.types";
 import { toast } from "sonner";
 
@@ -25,21 +27,22 @@ interface SalaryData {
 
 const SalaryManagement: React.FC = () => {
   const { user } = useAuth();
-  const { 
-    incomePlans, 
-    createIncomePlan, 
-    updateIncomePlan, 
+  const { hasLinkedAccounts } = useBankAccounts();
+  const {
+    incomePlans,
+    createIncomePlan,
+    updateIncomePlan,
     fetchIncomePlans,
     addMilestone,
     deleteMilestone,
     fetchMilestones,
     milestones,
-    isLoading 
+    isLoading,
   } = useIncomePlans();
-  
+
   // Get the active income plan
-  const activePlan = incomePlans.find(plan => plan.isActive) || null;
-  
+  const activePlan = incomePlans.find((plan) => plan.isActive) || null;
+
   const [salaryData, setSalaryData] = useState<SalaryData>({
     baseSalary: 0,
     allowances: 0,
@@ -69,21 +72,23 @@ const SalaryManagement: React.FC = () => {
   // Load income plans on mount and clean up old localStorage data
   useEffect(() => {
     // Remove old mock salary plans from localStorage
-    localStorage.removeItem('mock_salary_plans');
-    
+    localStorage.removeItem("mock_salary_plans");
+
     // Load new income plans
     fetchIncomePlans();
   }, [fetchIncomePlans]);
 
   const calculateNetSalary = () => {
-    return salaryData.baseSalary + salaryData.allowances - salaryData.deductions;
+    return (
+      salaryData.baseSalary + salaryData.allowances - salaryData.deductions
+    );
   };
 
   const calculateMonthlySalary = () => {
     const netSalary = calculateNetSalary();
     switch (salaryData.payFrequency) {
       case "WEEKLY":
-        return netSalary * 52 / 12;
+        return (netSalary * 52) / 12;
       case "MONTHLY":
         return netSalary;
       case "QUARTERLY":
@@ -97,7 +102,7 @@ const SalaryManagement: React.FC = () => {
 
   const handleSalarySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!salaryData.employer.trim()) {
       toast.error("Please enter your employer name");
       return;
@@ -123,7 +128,7 @@ const SalaryManagement: React.FC = () => {
           endDate: new Date(currentYear, 11, 31).toISOString(),
           isActive: true,
         };
-        
+
         await updateIncomePlan(activePlan.id, updateData);
         toast.success("Income plan updated successfully!");
       } else {
@@ -136,15 +141,15 @@ const SalaryManagement: React.FC = () => {
           endDate: new Date(currentYear, 11, 31).toISOString(),
           isActive: true,
         };
-        
+
         await createIncomePlan(createData);
-        
+
         // TODO: Create an income source for the salary
         // This would be done using addIncomeSource with the new plan ID
-        
+
         toast.success("Income plan created successfully!");
       }
-      
+
       setIsEditing(false);
     } catch (error: any) {
       console.error("Failed to save salary data:", error);
@@ -173,9 +178,14 @@ const SalaryManagement: React.FC = () => {
       };
 
       await addMilestone(activePlan.id, milestoneData);
-      setNewGoal({ name: "", targetAmount: "", targetDate: "", priority: "medium" });
+      setNewGoal({
+        name: "",
+        targetAmount: "",
+        targetDate: "",
+        priority: "medium",
+      });
       toast.success("Savings goal added successfully!");
-      
+
       // Refresh milestones
       fetchMilestones(activePlan.id);
     } catch (error: any) {
@@ -190,7 +200,7 @@ const SalaryManagement: React.FC = () => {
     try {
       await deleteMilestone(activePlan.id, milestoneId);
       toast.success("Savings goal removed");
-      
+
       // Refresh milestones
       fetchMilestones(activePlan.id);
     } catch (error: any) {
@@ -208,6 +218,9 @@ const SalaryManagement: React.FC = () => {
   return (
     <AppLayout title="Income Management">
       <div className="space-y-6">
+        {/* Bank Account Management */}
+        <BankAccountManager />
+
         {/* Salary Overview */}
         <Card>
           <CardHeader>
@@ -218,11 +231,8 @@ const SalaryManagement: React.FC = () => {
                   Manage your salary and income details
                 </p>
               </div>
-              {!isEditing && activePlan && (
-                <Button 
-                  variant="secondary" 
-                  onClick={() => setIsEditing(true)}
-                >
+              {!isEditing && activePlan && hasLinkedAccounts && (
+                <Button variant="secondary" onClick={() => setIsEditing(true)}>
                   Edit Details
                 </Button>
               )}
@@ -239,7 +249,12 @@ const SalaryManagement: React.FC = () => {
                     <Input
                       type="text"
                       value={salaryData.employer}
-                      onChange={(e) => setSalaryData({...salaryData, employer: e.target.value})}
+                      onChange={(e) =>
+                        setSalaryData({
+                          ...salaryData,
+                          employer: e.target.value,
+                        })
+                      }
                       placeholder="Company name"
                       required
                     />
@@ -249,9 +264,9 @@ const SalaryManagement: React.FC = () => {
                       Currency
                     </label>
                     <select
-                      value={salaryData.currency}
-                      onChange={(e) => setSalaryData({...salaryData, currency: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                      value="INR"
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
                     >
                       <option value="INR">INR - Indian Rupee</option>
                       <option value="USD">USD - US Dollar</option>
@@ -271,7 +286,12 @@ const SalaryManagement: React.FC = () => {
                     <Input
                       type="number"
                       value={salaryData.baseSalary || ""}
-                      onChange={(e) => setSalaryData({...salaryData, baseSalary: parseFloat(e.target.value) || 0})}
+                      onChange={(e) =>
+                        setSalaryData({
+                          ...salaryData,
+                          baseSalary: parseFloat(e.target.value) || 0,
+                        })
+                      }
                       placeholder="0.00"
                       min="0"
                       step="0.01"
@@ -285,7 +305,12 @@ const SalaryManagement: React.FC = () => {
                     <Input
                       type="number"
                       value={salaryData.allowances || ""}
-                      onChange={(e) => setSalaryData({...salaryData, allowances: parseFloat(e.target.value) || 0})}
+                      onChange={(e) =>
+                        setSalaryData({
+                          ...salaryData,
+                          allowances: parseFloat(e.target.value) || 0,
+                        })
+                      }
                       placeholder="0.00"
                       min="0"
                       step="0.01"
@@ -298,7 +323,12 @@ const SalaryManagement: React.FC = () => {
                     <Input
                       type="number"
                       value={salaryData.deductions || ""}
-                      onChange={(e) => setSalaryData({...salaryData, deductions: parseFloat(e.target.value) || 0})}
+                      onChange={(e) =>
+                        setSalaryData({
+                          ...salaryData,
+                          deductions: parseFloat(e.target.value) || 0,
+                        })
+                      }
                       placeholder="0.00"
                       min="0"
                       step="0.01"
@@ -313,7 +343,12 @@ const SalaryManagement: React.FC = () => {
                     </label>
                     <select
                       value={salaryData.payFrequency}
-                      onChange={(e) => setSalaryData({...salaryData, payFrequency: e.target.value as IncomeFrequency})}
+                      onChange={(e) =>
+                        setSalaryData({
+                          ...salaryData,
+                          payFrequency: e.target.value as IncomeFrequency,
+                        })
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
                     >
                       <option value="WEEKLY">Weekly</option>
@@ -329,7 +364,12 @@ const SalaryManagement: React.FC = () => {
                     <Input
                       type="number"
                       value={salaryData.payDay || ""}
-                      onChange={(e) => setSalaryData({...salaryData, payDay: parseInt(e.target.value) || 1})}
+                      onChange={(e) =>
+                        setSalaryData({
+                          ...salaryData,
+                          payDay: parseInt(e.target.value) || 1,
+                        })
+                      }
                       min="1"
                       max="31"
                       placeholder="1"
@@ -339,15 +379,21 @@ const SalaryManagement: React.FC = () => {
 
                 <div className="bg-brand-primary-50 p-4 rounded-lg">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-brand-dark">Net Salary per pay period:</span>
+                    <span className="font-medium text-brand-dark">
+                      Net Salary per pay period:
+                    </span>
                     <span className="text-xl font-bold text-brand-primary">
-                      {salaryData.currency} {calculateNetSalary().toLocaleString()}
+                      {salaryData.currency}{" "}
+                      {calculateNetSalary().toLocaleString()}
                     </span>
                   </div>
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-sm text-brand-muted">Monthly equivalent:</span>
+                    <span className="text-sm text-brand-muted">
+                      Monthly equivalent:
+                    </span>
                     <span className="font-semibold text-brand-dark">
-                      {salaryData.currency} {calculateMonthlySalary().toLocaleString()}
+                      {salaryData.currency}{" "}
+                      {calculateMonthlySalary().toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -357,9 +403,9 @@ const SalaryManagement: React.FC = () => {
                     {isLoading ? "Saving..." : "Save Changes"}
                   </Button>
                   {activePlan && (
-                    <Button 
-                      type="button" 
-                      variant="secondary" 
+                    <Button
+                      type="button"
+                      variant="secondary"
                       onClick={() => setIsEditing(false)}
                     >
                       Cancel
@@ -371,27 +417,46 @@ const SalaryManagement: React.FC = () => {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg">
-                    <h3 className="text-sm font-medium text-blue-800">Income Plan</h3>
-                    <p className="text-xl font-bold text-blue-900">{activePlan?.name || "Not set"}</p>
+                    <h3 className="text-sm font-medium text-blue-800">
+                      Income Plan
+                    </h3>
+                    <p className="text-xl font-bold text-blue-900">
+                      {activePlan?.name || "Not set"}
+                    </p>
                   </div>
                   <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg">
-                    <h3 className="text-sm font-medium text-green-800">Target Amount</h3>
+                    <h3 className="text-sm font-medium text-green-800">
+                      Target Amount
+                    </h3>
                     <p className="text-xl font-bold text-green-900">
-                      {salaryData.currency} {activePlan?.targetAmount?.toLocaleString() || "0"}
+                      {salaryData.currency}{" "}
+                      {activePlan?.targetAmount?.toLocaleString() || "0"}
                     </p>
                     <p className="text-xs text-green-700">Annual</p>
                   </div>
                   <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-lg">
-                    <h3 className="text-sm font-medium text-purple-800">Current Progress</h3>
+                    <h3 className="text-sm font-medium text-purple-800">
+                      Current Progress
+                    </h3>
                     <p className="text-xl font-bold text-purple-900">
-                      {salaryData.currency} {activePlan?.currentAmount?.toLocaleString() || "0"}
+                      {salaryData.currency}{" "}
+                      {activePlan?.currentAmount?.toLocaleString() || "0"}
                     </p>
                     <p className="text-xs text-purple-700">
-                      {activePlan ? ((activePlan.currentAmount / activePlan.targetAmount) * 100).toFixed(1) : 0}% complete
+                      {activePlan
+                        ? (
+                            (activePlan.currentAmount /
+                              activePlan.targetAmount) *
+                            100
+                          ).toFixed(1)
+                        : 0}
+                      % complete
                     </p>
                   </div>
                   <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-4 rounded-lg">
-                    <h3 className="text-sm font-medium text-orange-800">Status</h3>
+                    <h3 className="text-sm font-medium text-orange-800">
+                      Status
+                    </h3>
                     <p className="text-xl font-bold text-orange-900">
                       {activePlan?.isActive ? "Active" : "Inactive"}
                     </p>
@@ -415,31 +480,44 @@ const SalaryManagement: React.FC = () => {
             <div className="space-y-6">
               {/* Add New Goal Form */}
               <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-                <h3 className="font-medium text-brand-dark">Add New Savings Goal</h3>
+                <h3 className="font-medium text-brand-dark">
+                  Add New Savings Goal
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                   <Input
                     type="text"
                     placeholder="Goal name"
                     value={newGoal.name}
-                    onChange={(e) => setNewGoal({...newGoal, name: e.target.value})}
+                    onChange={(e) =>
+                      setNewGoal({ ...newGoal, name: e.target.value })
+                    }
                   />
                   <Input
                     type="number"
                     placeholder="Target amount"
                     value={newGoal.targetAmount}
-                    onChange={(e) => setNewGoal({...newGoal, targetAmount: e.target.value})}
+                    onChange={(e) =>
+                      setNewGoal({ ...newGoal, targetAmount: e.target.value })
+                    }
                     min="0"
                     step="0.01"
                   />
                   <Input
                     type="date"
                     value={newGoal.targetDate}
-                    onChange={(e) => setNewGoal({...newGoal, targetDate: e.target.value})}
+                    onChange={(e) =>
+                      setNewGoal({ ...newGoal, targetDate: e.target.value })
+                    }
                   />
                   <div className="flex space-x-2">
                     <select
                       value={newGoal.priority}
-                      onChange={(e) => setNewGoal({...newGoal, priority: e.target.value as any})}
+                      onChange={(e) =>
+                        setNewGoal({
+                          ...newGoal,
+                          priority: e.target.value as any,
+                        })
+                      }
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
                     >
                       <option value="low">Low Priority</option>
@@ -455,12 +533,25 @@ const SalaryManagement: React.FC = () => {
               {milestones.length > 0 ? (
                 <div className="space-y-4">
                   {milestones.map((milestone) => (
-                    <div key={milestone.id} className="border border-gray-200 rounded-lg p-4">
+                    <div
+                      key={milestone.id}
+                      className="border border-gray-200 rounded-lg p-4"
+                    >
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center space-x-3">
-                          <h3 className="font-medium text-brand-dark">{milestone.title}</h3>
-                          <span className={`text-xs px-2 py-1 rounded-full ${milestone.isCompleted ? 'text-green-600 bg-green-50' : 'text-gray-600 bg-gray-50'}`}>
-                            {milestone.isCompleted ? 'COMPLETED' : 'IN PROGRESS'}
+                          <h3 className="font-medium text-brand-dark">
+                            {milestone.title}
+                          </h3>
+                          <span
+                            className={`text-xs px-2 py-1 rounded-full ${
+                              milestone.isCompleted
+                                ? "text-green-600 bg-green-50"
+                                : "text-gray-600 bg-gray-50"
+                            }`}
+                          >
+                            {milestone.isCompleted
+                              ? "COMPLETED"
+                              : "IN PROGRESS"}
                           </span>
                         </div>
                         <Button
@@ -472,12 +563,13 @@ const SalaryManagement: React.FC = () => {
                           Remove
                         </Button>
                       </div>
-                      
+
                       <div className="space-y-2">
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-brand-muted">Progress</span>
                           <span className="font-medium">
-                            {salaryData.currency} 0 / {milestone.targetAmount.toLocaleString()}
+                            {salaryData.currency} 0 /{" "}
+                            {milestone.targetAmount.toLocaleString()}
                           </span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
@@ -487,11 +579,20 @@ const SalaryManagement: React.FC = () => {
                           ></div>
                         </div>
                         <div className="flex items-center justify-between text-xs text-brand-muted">
-                          <span>{getProgressPercentage().toFixed(1)}% complete</span>
-                          <span>Target: {new Date(milestone.targetDate).toLocaleDateString()}</span>
+                          <span>
+                            {getProgressPercentage().toFixed(1)}% complete
+                          </span>
+                          <span>
+                            Target:{" "}
+                            {new Date(
+                              milestone.targetDate
+                            ).toLocaleDateString()}
+                          </span>
                         </div>
                         {milestone.description && (
-                          <p className="text-sm text-brand-muted mt-2">{milestone.description}</p>
+                          <p className="text-sm text-brand-muted mt-2">
+                            {milestone.description}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -500,7 +601,9 @@ const SalaryManagement: React.FC = () => {
               ) : (
                 <div className="text-center py-8 text-brand-muted">
                   <p>No savings goals set yet.</p>
-                  <p className="text-sm">Add your first goal above to start tracking your progress!</p>
+                  <p className="text-sm">
+                    Add your first goal above to start tracking your progress!
+                  </p>
                 </div>
               )}
             </div>
