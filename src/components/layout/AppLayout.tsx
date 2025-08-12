@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import { Button } from "@/components/ui/button";
-import logo from "@/assets/images/logo.png";
+import { useAuth } from "../../context/AuthContext";
+import { Button } from "../ui/button";
+import logo from "../../assets/images/logo.png";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -103,9 +103,17 @@ const AppLayout: React.FC<AppLayoutProps> = ({
     },
   ];
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      console.log('Logout button clicked');
+      await logout();
+      console.log('Logout successful, navigating to login');
+      navigate("/login", { replace: true });
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Force navigation even if logout fails
+      navigate("/login", { replace: true });
+    }
   };
 
   return (

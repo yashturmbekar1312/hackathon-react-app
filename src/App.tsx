@@ -14,9 +14,17 @@ import './utils/debug';
 // import HealthCheck from './components/HealthCheck';
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user, token } = useAuth();
+
+  console.log('🛡️ ProtectedRoute: Current auth state:', { 
+    isAuthenticated, 
+    isLoading, 
+    hasUser: !!user, 
+    hasToken: !!token 
+  });
 
   if (isLoading) {
+    console.log('🛡️ ProtectedRoute: Still loading, showing spinner');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -28,9 +36,15 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   }
 
   // Check authentication and redirect if needed
-  console.log('ProtectedRoute: isAuthenticated =', isAuthenticated);
+  console.log('🛡️ ProtectedRoute: isAuthenticated =', isAuthenticated);
   
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
+  if (isAuthenticated) {
+    console.log('🛡️ ProtectedRoute: User is authenticated, rendering children');
+    return <>{children}</>;
+  } else {
+    console.log('🛡️ ProtectedRoute: User not authenticated, redirecting to login');
+    return <Navigate to="/login" replace />;
+  }
 };
 
 // Public Route Component (redirect to dashboard if authenticated)

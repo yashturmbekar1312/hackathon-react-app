@@ -52,10 +52,10 @@ export interface LoginCredentials {
 export interface SignupData {
   email: string;
   password: string;
-  name: string;
-  currency: string;
-  riskProfile: RiskProfile;
-  savingsThreshold: number;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  dateOfBirth: string;
 }
 
 export interface OTPVerification {

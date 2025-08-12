@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import { AuthState, User, LoginCredentials, SignupData } from '../types/auth.types';
 import { authService } from '../services/auth.service';
+import { TOKEN_STORAGE_KEY, USER_STORAGE_KEY } from '../utils/constants';
 
 // Auth Context
 interface AuthContextType extends AuthState {
@@ -119,6 +120,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Use ONLY actual Railway API for login - no mocks
       console.log('🔐 AuthContext: Starting login process...');
+      console.log('🔐 AuthContext: Credentials:', { email: credentials.email, password: '***' });
       const response = await authService.login(credentials);
       console.log('🔐 AuthContext: AuthService response:', response);
       
@@ -141,7 +143,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Verify the state was updated
       setTimeout(() => {
-        const storedToken = localStorage.getItem('wealthify_token');
+        const storedToken = localStorage.getItem(TOKEN_STORAGE_KEY);
         console.log('🔍 AuthContext: Token verification after login:', storedToken ? storedToken.substring(0, 20) + '...' : 'NO TOKEN');
       }, 100);
       
@@ -178,16 +180,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await authService.logout();
       
       // Manually clear localStorage to ensure complete logout
-      localStorage.removeItem('wealthify_token');
-      localStorage.removeItem('wealthify_user');
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+      localStorage.removeItem(USER_STORAGE_KEY);
       console.log('Cleared authentication data from localStorage');
       
       dispatch({ type: 'LOGOUT' });
     } catch (error) {
       console.error('Logout error:', error);
       // Force logout even if API call fails
-      localStorage.removeItem('wealthify_token');
-      localStorage.removeItem('wealthify_user');
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+      localStorage.removeItem(USER_STORAGE_KEY);
       dispatch({ type: 'LOGOUT' });
     }
   };

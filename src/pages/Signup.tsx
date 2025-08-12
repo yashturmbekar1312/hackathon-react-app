@@ -15,8 +15,6 @@ interface SignupData {
   confirmPassword: string;
   phoneNumber: string;
   dateOfBirth: string;
-  occupation: string;
-  annualIncome: string;
 }
 
 interface PasswordStrength {
@@ -27,7 +25,6 @@ interface PasswordStrength {
 const Signup: React.FC = () => {
   const navigate = useNavigate();
   const { register } = useAuth();
-  const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -39,8 +36,6 @@ const Signup: React.FC = () => {
     confirmPassword: "",
     phoneNumber: "",
     dateOfBirth: "",
-    occupation: "",
-    annualIncome: "",
   });
 
   const validateEmail = (email: string): boolean => {
@@ -113,7 +108,7 @@ const Signup: React.FC = () => {
   };
 
   const validateStep2 = (): boolean => {
-    const { phoneNumber, dateOfBirth, occupation, annualIncome } = formData;
+    const { phoneNumber, dateOfBirth } = formData;
 
     if (!phoneNumber.trim()) {
       toast.error("Phone number is required");
@@ -122,16 +117,6 @@ const Signup: React.FC = () => {
 
     if (!dateOfBirth) {
       toast.error("Date of birth is required");
-      return false;
-    }
-
-    if (!occupation.trim()) {
-      toast.error("Occupation is required");
-      return false;
-    }
-
-    if (!annualIncome.trim()) {
-      toast.error("Annual income is required");
       return false;
     }
 
@@ -145,43 +130,29 @@ const Signup: React.FC = () => {
     }));
   };
 
-  const handleNextStep = () => {
-    if (currentStep === 1 && validateStep1()) {
-      setCurrentStep(2);
-    }
-  };
-
-  const handlePrevStep = () => {
-    setCurrentStep(1);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (currentStep === 1) {
-      handleNextStep();
-      return;
-    }
-
-    if (!validateStep2()) {
+    // Single step form - validate all fields
+    if (!validateStep1() || !validateStep2()) {
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // Register with the auth service
+      // Register with the auth service - Updated to match API payload
       await register({
         email: formData.email,
         password: formData.password,
-        name: `${formData.firstName} ${formData.lastName}`,
-        currency: "INR",
-        riskProfile: "balanced" as any,
-        savingsThreshold: 10000, // Adjusted for INR
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phoneNumber: formData.phoneNumber,
+        dateOfBirth: formData.dateOfBirth,
       });
 
-      toast.success("Account created successfully! Welcome to Wealthify!");
-      navigate("/dashboard");
+      toast.success("Account created successfully! Please login to continue.");
+      navigate("/login");
     } catch (error: any) {
       console.error("Registration error:", error);
       toast.error(error.message || "Registration failed. Please try again.");
@@ -206,201 +177,133 @@ const Signup: React.FC = () => {
             Start your journey to financial freedom
           </p>
         </div>
-
-        {/* Progress Indicator */}
-        <div className="flex items-center justify-center mb-6">
-          <div className="flex items-center space-x-2">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-              currentStep >= 1 
-                ? 'bg-brand-primary text-white' 
-                : 'bg-white text-brand-muted'
-            }`}>
-              1
-            </div>
-            <div className={`w-12 h-0.5 transition-colors ${
-              currentStep >= 2 ? 'bg-brand-primary' : 'bg-gray-200'
-            }`}></div>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-              currentStep >= 2 
-                ? 'bg-brand-primary text-white' 
-                : 'bg-white text-brand-muted'
-            }`}>
-              2
-            </div>
-          </div>
-        </div>
-
         {/* Main Form Card */}
         <Card className="backdrop-blur-md bg-white/80 border-white/20 shadow-xl">
           <CardHeader className="text-center pb-4">
             <h2 className="text-xl font-semibold text-brand-dark">
-              {currentStep === 1 ? "Account Information" : "Personal Details"}
+              Create Account
             </h2>
             <p className="text-sm text-brand-muted">
-              {currentStep === 1 
-                ? "Create your secure account" 
-                : "Complete your profile"
-              }
+              Join Wealthify and start your financial journey
             </p>
           </CardHeader>
 
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              {currentStep === 1 ? (
-                <>
-                  {/* Step 1: Account Information */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Input
-                        type="text"
-                        placeholder="First Name"
-                        value={formData.firstName}
-                        onChange={(e) => handleInputChange("firstName", e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Input
-                        type="text"
-                        placeholder="Last Name"
-                        value={formData.lastName}
-                        onChange={(e) => handleInputChange("lastName", e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <Input
-                    type="email"
-                    placeholder="Email Address"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    required
-                  />
-
-                  <div className="relative">
-                    <Input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Password"
-                      value={formData.password}
-                      onChange={(e) => handleInputChange("password", e.target.value)}
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-brand-muted hover:text-brand-dark transition-colors"
-                    >
-                      {showPassword ? "👁️" : "👁️‍🗨️"}
-                    </button>
-                  </div>
-
-                  {/* Password Strength Indicator */}
-                  {formData.password && (
-                    <div className="space-y-2">
-                      <div className="flex space-x-1">
-                        {[1, 2, 3, 4, 5].map((level) => (
-                          <div
-                            key={level}
-                            className={`h-1 flex-1 rounded-full transition-colors ${
-                              level <= passwordStrength.score
-                                ? passwordStrength.score <= 2
-                                  ? 'bg-red-400'
-                                  : passwordStrength.score <= 3
-                                  ? 'bg-yellow-400'
-                                  : 'bg-green-400'
-                                : 'bg-gray-200'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      {passwordStrength.feedback.length > 0 && (
-                        <p className="text-xs text-brand-muted">
-                          Missing: {passwordStrength.feedback.join(", ")}
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="relative">
-                    <Input
-                      type={showConfirmPassword ? "text" : "password"}
-                      placeholder="Confirm Password"
-                      value={formData.confirmPassword}
-                      onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-brand-muted hover:text-brand-dark transition-colors"
-                    >
-                      {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
-                    </button>
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Processing..." : "Continue"}
-                  </Button>
-                </>
-              ) : (
-                <>
-                  {/* Step 2: Personal Details */}
-                  <Input
-                    type="tel"
-                    placeholder="Phone Number"
-                    value={formData.phoneNumber}
-                    onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
-                    required
-                  />
-
-                  <Input
-                    type="date"
-                    placeholder="Date of Birth"
-                    value={formData.dateOfBirth}
-                    onChange={(e) => handleInputChange("dateOfBirth", e.target.value)}
-                    required
-                  />
-
+              {/* All Fields on Single Page */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
                   <Input
                     type="text"
-                    placeholder="Occupation"
-                    value={formData.occupation}
-                    onChange={(e) => handleInputChange("occupation", e.target.value)}
+                    placeholder="First Name"
+                    value={formData.firstName}
+                    onChange={(e) => handleInputChange("firstName", e.target.value)}
                     required
                   />
-
+                </div>
+                <div>
                   <Input
-                    type="number"
-                    placeholder="Annual Income (INR)"
-                    value={formData.annualIncome}
-                    onChange={(e) => handleInputChange("annualIncome", e.target.value)}
+                    type="text"
+                    placeholder="Last Name"
+                    value={formData.lastName}
+                    onChange={(e) => handleInputChange("lastName", e.target.value)}
                     required
                   />
+                </div>
+              </div>
 
-                  <div className="flex space-x-3">
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={handlePrevStep}
-                      className="flex-1"
-                    >
-                      Back
-                    </Button>
-                    <Button
-                      type="submit"
-                      className="flex-1"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? "Creating Account..." : "Create Account"}
-                    </Button>
+              <Input
+                type="email"
+                placeholder="Email Address"
+                value={formData.email}
+                onChange={(e) => handleInputChange("email", e.target.value)}
+                required
+              />
+
+              <Input
+                type="tel"
+                placeholder="Phone Number"
+                value={formData.phoneNumber}
+                onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
+                required
+              />
+
+              <Input
+                type="date"
+                placeholder="Date of Birth"
+                value={formData.dateOfBirth}
+                onChange={(e) => handleInputChange("dateOfBirth", e.target.value)}
+                required
+              />
+
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={(e) => handleInputChange("password", e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-brand-muted hover:text-brand-dark transition-colors"
+                >
+                  {showPassword ? "👁️" : "👁️‍🗨️"}
+                </button>
+              </div>
+
+              {/* Password Strength Indicator */}
+              {formData.password && (
+                <div className="space-y-2">
+                  <div className="flex space-x-1">
+                    {[1, 2, 3, 4, 5].map((level) => (
+                      <div
+                        key={level}
+                        className={`h-1 flex-1 rounded-full transition-colors ${
+                          level <= passwordStrength.score
+                            ? passwordStrength.score <= 2
+                              ? 'bg-red-400'
+                              : passwordStrength.score <= 3
+                              ? 'bg-yellow-400'
+                              : 'bg-green-400'
+                            : 'bg-gray-200'
+                        }`}
+                      />
+                    ))}
                   </div>
-                </>
+                  {passwordStrength.feedback.length > 0 && (
+                    <p className="text-xs text-brand-muted">
+                      Missing: {passwordStrength.feedback.join(", ")}
+                    </p>
+                  )}
+                </div>
               )}
+
+              <div className="relative">
+                <Input
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm Password"
+                  value={formData.confirmPassword}
+                  onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-brand-muted hover:text-brand-dark transition-colors"
+                >
+                  {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
+                </button>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isLoading}
+              >
+                {isLoading ? "Creating Account..." : "Create Account"}
+              </Button>
             </form>
 
             {/* Sign In Link */}
