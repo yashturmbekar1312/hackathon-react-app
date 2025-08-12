@@ -1,4 +1,5 @@
 import { apiService } from './api';
+import { ApiResponse } from '../types/api.types';
 import { 
   AuthResponse, 
   LoginCredentials, 
@@ -9,35 +10,60 @@ import {
 import { TOKEN_STORAGE_KEY, USER_STORAGE_KEY } from '../utils/constants';
 
 class AuthService {
-  // Register new user
+  /**
+   * Register new user
+   * POST /auth/register
+   */
   async register(signupData: SignupData): Promise<AuthResponse> {
-    return await apiService.post<AuthResponse>('/auth/register', signupData);
-  }
-
-  // Send OTP for email verification
-  async sendOTP(email: string): Promise<{ message: string }> {
-    return await apiService.post<{ message: string }>('/auth/send-otp', { email });
-  }
-
-  // Verify OTP
-  async verifyOTP(otpData: OTPVerification): Promise<{ message: string; isValid: boolean }> {
-    return await apiService.post<{ message: string; isValid: boolean }>('/auth/verify-otp', otpData);
-  }
-
-  // Login user
-  async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await apiService.post<AuthResponse>('/auth/login', credentials);
+    const response = await apiService.post<ApiResponse<AuthResponse>>('/auth/register', signupData);
     
     // Store token and user data
-    if (response.token) {
-      localStorage.setItem(TOKEN_STORAGE_KEY, response.token);
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.user));
+    if (response.data.token) {
+      localStorage.setItem(TOKEN_STORAGE_KEY, response.data.token);
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.data.user));
     }
     
-    return response;
+    return response.data;
   }
 
-  // Logout user
+  /**
+   * Send OTP for email verification
+   * POST /auth/send-otp
+   */
+  async sendOTP(email: string): Promise<{ message: string }> {
+    const response = await apiService.post<ApiResponse<{ message: string }>>('/auth/send-otp', { email });
+    return response.data;
+  }
+
+  /**
+   * Verify OTP
+   * POST /auth/verify-otp
+   */
+  async verifyOTP(otpData: OTPVerification): Promise<{ message: string; isValid: boolean }> {
+    const response = await apiService.post<ApiResponse<{ message: string; isValid: boolean }>>('/auth/verify-otp', otpData);
+    return response.data;
+  }
+
+  /**
+   * Login user
+   * POST /auth/login
+   */
+  async login(credentials: LoginCredentials): Promise<AuthResponse> {
+    const response = await apiService.post<ApiResponse<AuthResponse>>('/auth/login', credentials);
+    
+    // Store token and user data
+    if (response.data.token) {
+      localStorage.setItem(TOKEN_STORAGE_KEY, response.data.token);
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.data.user));
+    }
+    
+    return response.data;
+  }
+
+  /**
+   * Logout user
+   * POST /auth/logout
+   */
   async logout(): Promise<void> {
     try {
       await apiService.post('/auth/logout');
@@ -49,42 +75,65 @@ class AuthService {
     }
   }
 
-  // Get current user
+  /**
+   * Get current user
+   * GET /auth/me
+   */
   async getCurrentUser(): Promise<User> {
-    return await apiService.get<User>('/auth/me');
+    const response = await apiService.get<ApiResponse<User>>('/auth/me');
+    return response.data;
   }
 
-  // Update user profile
+  /**
+   * Update user profile
+   * PUT /auth/profile
+   */
   async updateProfile(userData: Partial<User>): Promise<User> {
-    const response = await apiService.patch<User>('/auth/profile', userData);
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response));
-    return response;
+    const response = await apiService.patch<ApiResponse<User>>('/auth/profile', userData);
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.data));
+    return response.data;
   }
 
-  // Change password
+  /**
+   * Change password
+   * PUT /auth/change-password
+   */
   async changePassword(currentPassword: string, newPassword: string): Promise<{ message: string }> {
-    return await apiService.post<{ message: string }>('/auth/change-password', {
+    const response = await apiService.put<ApiResponse<{ message: string }>>('/auth/change-password', {
       currentPassword,
       newPassword
     });
+    return response.data;
   }
 
-  // Forgot password
+  /**
+   * Forgot password
+   * POST /auth/forgot-password
+   */
   async forgotPassword(email: string): Promise<{ message: string }> {
-    return await apiService.post<{ message: string }>('/auth/forgot-password', { email });
+    const response = await apiService.post<ApiResponse<{ message: string }>>('/auth/forgot-password', { email });
+    return response.data;
   }
 
-  // Reset password
+  /**
+   * Reset password
+   * POST /auth/reset-password
+   */
   async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
-    return await apiService.post<{ message: string }>('/auth/reset-password', {
+    const response = await apiService.post<ApiResponse<{ message: string }>>('/auth/reset-password', {
       token,
       newPassword
     });
+    return response.data;
   }
 
-  // Refresh token
+  /**
+   * Refresh token
+   * POST /auth/refresh
+   */
   async refreshToken(): Promise<AuthResponse> {
-    return await apiService.post<AuthResponse>('/auth/refresh');
+    const response = await apiService.post<ApiResponse<AuthResponse>>('/auth/refresh');
+    return response.data;
   }
 
   // Check if user is authenticated

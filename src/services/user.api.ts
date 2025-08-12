@@ -1,11 +1,11 @@
 import { apiService } from './api';
-import { ApiResponse } from './api';
+import { ApiResponse } from '../types/api.types';
 
 // User Management Types
 export interface UpdateProfileRequest {
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
   dateOfBirth?: string;
   avatar?: string;
 }
@@ -24,7 +24,7 @@ export interface UserProfile {
   email: string;
   firstName: string;
   lastName: string;
-  phoneNumber: string;
+  phoneNumber?: string;
   dateOfBirth?: string;
   avatar?: string;
   isEmailVerified: boolean;
@@ -33,24 +33,40 @@ export interface UserProfile {
 }
 
 class UserApiService {
-  // Get User Profile
-  async getProfile(): Promise<ApiResponse<UserProfile>> {
-    return apiService.get<ApiResponse<UserProfile>>('/users/profile');
+  /**
+   * Get User Profile
+   * GET /users/profile
+   */
+  async getProfile(): Promise<UserProfile> {
+    const response = await apiService.get<ApiResponse<UserProfile>>('/users/profile');
+    return response.data;
   }
 
-  // Update User Profile
-  async updateProfile(data: UpdateProfileRequest): Promise<ApiResponse<UserProfile>> {
-    return apiService.put<ApiResponse<UserProfile>>('/users/profile', data);
+  /**
+   * Update User Profile
+   * PUT /users/profile
+   */
+  async updateProfile(data: UpdateProfileRequest): Promise<UserProfile> {
+    const response = await apiService.put<ApiResponse<UserProfile>>('/users/profile', data);
+    return response.data;
   }
 
-  // Change Password
-  async changePassword(data: ChangePasswordRequest): Promise<ApiResponse<void>> {
-    return apiService.put<ApiResponse<void>>('/users/change-password', data);
+  /**
+   * Change Password
+   * PUT /users/change-password
+   */
+  async changePassword(data: ChangePasswordRequest): Promise<{ message: string }> {
+    const response = await apiService.put<ApiResponse<{ message: string }>>('/users/change-password', data);
+    return response.data;
   }
 
-  // Delete Account
-  async deleteAccount(data: DeleteAccountRequest): Promise<ApiResponse<void>> {
-    return apiService.deleteWithData<ApiResponse<void>>('/users/account', data);
+  /**
+   * Delete Account
+   * DELETE /users/account
+   */
+  async deleteAccount(data: DeleteAccountRequest): Promise<{ message: string }> {
+    const response = await apiService.deleteWithData<ApiResponse<{ message: string }>>('/users/account', data);
+    return response.data;
   }
 }
 

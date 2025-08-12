@@ -1,5 +1,5 @@
 import { apiService } from './api';
-import { ApiResponse } from './api';
+import { ApiResponse } from '../types/api.types';
 
 // Account Management Types
 export interface CreateAccountRequest {
@@ -34,29 +34,49 @@ export interface Account {
 }
 
 class AccountApiService {
-  // Get All Accounts
-  async getAllAccounts(): Promise<ApiResponse<Account[]>> {
-    return apiService.get<ApiResponse<Account[]>>('/accounts');
+  /**
+   * Get All Accounts
+   * GET /accounts
+   */
+  async getAllAccounts(): Promise<Account[]> {
+    const response = await apiService.get<ApiResponse<Account[]>>('/accounts');
+    return response.data;
   }
 
-  // Get Account by ID
-  async getAccountById(accountId: string): Promise<ApiResponse<Account>> {
-    return apiService.get<ApiResponse<Account>>(`/accounts/${accountId}`);
+  /**
+   * Get Account by ID
+   * GET /accounts/{accountId}
+   */
+  async getAccountById(accountId: string): Promise<Account> {
+    const response = await apiService.get<ApiResponse<Account>>(`/accounts/${accountId}`);
+    return response.data;
   }
 
-  // Create Account
-  async createAccount(data: CreateAccountRequest): Promise<ApiResponse<Account>> {
-    return apiService.post<ApiResponse<Account>>('/accounts', data);
+  /**
+   * Create Account
+   * POST /accounts
+   */
+  async createAccount(data: CreateAccountRequest): Promise<Account> {
+    const response = await apiService.post<ApiResponse<Account>>('/accounts', data);
+    return response.data;
   }
 
-  // Update Account
-  async updateAccount(accountId: string, data: UpdateAccountRequest): Promise<ApiResponse<Account>> {
-    return apiService.put<ApiResponse<Account>>(`/accounts/${accountId}`, data);
+  /**
+   * Update Account
+   * PUT /accounts/{accountId}
+   */
+  async updateAccount(accountId: string, data: UpdateAccountRequest): Promise<Account> {
+    const response = await apiService.put<ApiResponse<Account>>(`/accounts/${accountId}`, data);
+    return response.data;
   }
 
-  // Delete Account
-  async deleteAccount(accountId: string): Promise<ApiResponse<void>> {
-    return apiService.delete<ApiResponse<void>>(`/accounts/${accountId}`);
+  /**
+   * Delete Account
+   * DELETE /accounts/{accountId}
+   */
+  async deleteAccount(accountId: string): Promise<{ message: string }> {
+    const response = await apiService.delete<ApiResponse<{ message: string }>>(`/accounts/${accountId}`);
+    return response.data;
   }
 }
 

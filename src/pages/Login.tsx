@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoginCredentials } from '@/types/auth.types';
+import { toast } from "sonner";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -31,9 +32,16 @@ const Login: React.FC = () => {
 
     try {
       await login(formData);
+      toast.success('Login Successful', {
+        description: 'Welcome back!'
+      });
       navigate('/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      const errorMessage = err instanceof Error ? err.message : 'Login failed';
+      setError(errorMessage);
+      toast.error('Login Failed', {
+        description: errorMessage
+      });
     } finally {
       setIsLoading(false);
     }
@@ -54,9 +62,16 @@ const Login: React.FC = () => {
         email: 'demo@wealthify.com',
         password: 'password',
       });
+      toast.success('Demo Login Successful', {
+        description: 'Welcome to the demo!'
+      });
       navigate('/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Demo login failed');
+      const errorMessage = err instanceof Error ? err.message : 'Demo login failed';
+      setError(errorMessage);
+      toast.error('Demo Login Failed', {
+        description: errorMessage
+      });
     } finally {
       setIsLoading(false);
     }

@@ -4,6 +4,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { authApiService } from '../api/endpoints/auth.api';
+import { toast } from "sonner";
 
 interface FormData {
   email: string;
@@ -125,10 +126,17 @@ const Signup: React.FC = () => {
         marketingConsent: false,
       });
       
+      toast.success('Registration Successful', {
+        description: 'Please check your email for the OTP code.'
+      });
       setStep('otp');
     } catch (error: any) {
       console.error('Registration error:', error);
-      setError(error.response?.data?.message || 'Registration failed. Please try again.');
+      const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
+      setError(errorMessage);
+      toast.error('Registration Failed', {
+        description: errorMessage
+      });
     } finally {
       setIsLoading(false);
     }
@@ -140,7 +148,11 @@ const Signup: React.FC = () => {
     setError(null);
 
     if (otpCode.length !== 6) {
-      setError('Please enter a 6-digit OTP code');
+      const errorMsg = 'Please enter a 6-digit OTP code';
+      setError(errorMsg);
+      toast.error('Invalid OTP', {
+        description: errorMsg
+      });
       return;
     }
 
@@ -153,10 +165,17 @@ const Signup: React.FC = () => {
         otpType: 'email_verification',
       });
       
+      toast.success('Email Verified', {
+        description: 'Your account has been successfully created!'
+      });
       setStep('success');
     } catch (error: any) {
       console.error('OTP verification error:', error);
-      setError(error.response?.data?.message || 'OTP verification failed. Please try again.');
+      const errorMessage = error.response?.data?.message || 'OTP verification failed. Please try again.';
+      setError(errorMessage);
+      toast.error('Verification Failed', {
+        description: errorMessage
+      });
     } finally {
       setIsLoading(false);
     }

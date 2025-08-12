@@ -1,5 +1,5 @@
 import { apiService } from './api';
-import { ApiResponse } from './api';
+import { ApiResponse, PaginationInfo } from '../types/api.types';
 
 // Transaction Types
 export interface CreateTransactionRequest {
@@ -55,35 +55,67 @@ export interface TransactionFilters {
   accountId?: string;
 }
 
+export interface PaginatedTransactions {
+  data: Transaction[];
+  pagination: PaginationInfo;
+}
+
 class TransactionApiService {
-  // Get All Transactions with filters
-  async getAllTransactions(filters?: TransactionFilters): Promise<ApiResponse<Transaction[]>> {
-    return apiService.get<ApiResponse<Transaction[]>>('/transactions', filters);
+  /**
+   * Get All Transactions with filters
+   * GET /api/transactions?page=1&pageSize=20&startDate=2024-01-01&endDate=2024-12-31&category=Food&type=Expense
+   */
+  async getAllTransactions(filters?: TransactionFilters): Promise<PaginatedTransactions> {
+    const response = await apiService.get<ApiResponse<Transaction[]>>('/transactions', filters);
+    return {
+      data: response.data,
+      pagination: response.pagination!
+    };
   }
 
-  // Get Transaction by ID
-  async getTransactionById(transactionId: string): Promise<ApiResponse<Transaction>> {
-    return apiService.get<ApiResponse<Transaction>>(`/transactions/${transactionId}`);
+  /**
+   * Get Transaction by ID
+   * GET /api/transactions/{transactionId}
+   */
+  async getTransactionById(transactionId: string): Promise<Transaction> {
+    const response = await apiService.get<ApiResponse<Transaction>>(`/transactions/${transactionId}`);
+    return response.data;
   }
 
-  // Create Transaction
-  async createTransaction(data: CreateTransactionRequest): Promise<ApiResponse<Transaction>> {
-    return apiService.post<ApiResponse<Transaction>>('/transactions', data);
+  /**
+   * Create Transaction
+   * POST /api/transactions
+   */
+  async createTransaction(data: CreateTransactionRequest): Promise<Transaction> {
+    const response = await apiService.post<ApiResponse<Transaction>>('/transactions', data);
+    return response.data;
   }
 
-  // Update Transaction
-  async updateTransaction(transactionId: string, data: UpdateTransactionRequest): Promise<ApiResponse<Transaction>> {
-    return apiService.put<ApiResponse<Transaction>>(`/transactions/${transactionId}`, data);
+  /**
+   * Update Transaction
+   * PUT /api/transactions/{transactionId}
+   */
+  async updateTransaction(transactionId: string, data: UpdateTransactionRequest): Promise<Transaction> {
+    const response = await apiService.put<ApiResponse<Transaction>>(`/transactions/${transactionId}`, data);
+    return response.data;
   }
 
-  // Delete Transaction
-  async deleteTransaction(transactionId: string): Promise<ApiResponse<void>> {
-    return apiService.delete<ApiResponse<void>>(`/transactions/${transactionId}`);
+  /**
+   * Delete Transaction
+   * DELETE /api/transactions/{transactionId}
+   */
+  async deleteTransaction(transactionId: string): Promise<{ message: string }> {
+    const response = await apiService.delete<ApiResponse<{ message: string }>>(`/transactions/${transactionId}`);
+    return response.data;
   }
 
-  // Bulk Create Transactions
-  async bulkCreateTransactions(data: BulkTransactionRequest): Promise<ApiResponse<Transaction[]>> {
-    return apiService.post<ApiResponse<Transaction[]>>('/transactions/bulk', data);
+  /**
+   * Bulk Create Transactions
+   * POST /api/transactions/bulk
+   */
+  async bulkCreateTransactions(data: BulkTransactionRequest): Promise<Transaction[]> {
+    const response = await apiService.post<ApiResponse<Transaction[]>>('/transactions/bulk', data);
+    return response.data;
   }
 }
 
