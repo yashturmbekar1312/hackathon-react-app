@@ -149,8 +149,8 @@ const SalaryManagement: React.FC = () => {
                   </div>
                 </div>
                 <div className="mt-6">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => setShowForm(true)}
                   >
                     Update Plan

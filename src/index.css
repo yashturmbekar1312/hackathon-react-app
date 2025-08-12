@@ -44,5 +44,5 @@ button:hover {
 }
 a:hover {
   color: var(--accent-hover-color);
-  text-decoration: underline;
+  text-decoration: none;
 }

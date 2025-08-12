@@ -11,6 +11,7 @@ import InvestmentSuggestions from './pages/InvestmentSuggestions';
 
 // Import debug utilities
 import './utils/debug';
+// import HealthCheck from './components/HealthCheck';
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -55,6 +56,7 @@ const App: React.FC = () => {
     <Router>
       <AuthProvider>
         <div className="min-h-screen bg-gray-50">
+          {/* <HealthCheck /> */}
           <Routes>
             {/* Public Routes */}
             <Route

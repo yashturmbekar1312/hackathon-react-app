@@ -11,15 +11,15 @@ import { InvestmentRecommendationParams, TimeHorizon } from '@/types/investment.
 const InvestmentSuggestions: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { 
-    generateSuggestions, 
-    acceptSuggestion, 
+  const {
+    generateSuggestions,
+    acceptSuggestion,
     rejectSuggestion,
     savingsProjection,
     calculateSavingsProjection,
     getPendingSuggestions,
     getAcceptedSuggestions,
-    isLoading 
+    isLoading
   } = useInvestments();
   const { getMonthlyIncome } = useSalary();
   const { getTotalExpenses } = useExpenses();
@@ -151,7 +151,7 @@ const InvestmentSuggestions: React.FC = () => {
                   <p className="text-sm text-gray-600">Above Threshold</p>
                 </div>
               </div>
-              
+
               {savingsProjection.surplusAmount > 0 && !hasGeneratedSuggestions && (
                 <div className="mt-6 text-center">
                   <Button onClick={handleGenerateSuggestions} disabled={isLoading}>
@@ -172,12 +172,12 @@ const InvestmentSuggestions: React.FC = () => {
                 Focus on Building Your Emergency Fund
               </h3>
               <p className="text-gray-600 mb-6">
-                Based on your current financial situation, we recommend focusing on building your emergency fund 
+                Based on your current financial situation, we recommend focusing on building your emergency fund
                 before considering investments. Try to reduce expenses or increase income to create a surplus.
               </p>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto">
                 <p className="text-sm text-blue-700">
-                  <strong>Tip:</strong> Aim to save at least {formatCurrency(user?.savingsThreshold || 1000)} per month 
+                  <strong>Tip:</strong> Aim to save at least {formatCurrency(user?.savingsThreshold || 1000)} per month
                   before investing. This ensures you have a safety net for unexpected expenses.
                 </p>
               </div>
@@ -207,7 +207,7 @@ const InvestmentSuggestions: React.FC = () => {
                   </CardHeader>
                   <CardContent>
                     <p className="text-gray-600 mb-4">{suggestion.description}</p>
-                    
+
                     <div className="space-y-3 mb-6">
                       <div className="flex justify-between">
                         <span className="text-gray-600">Suggested Amount:</span>
@@ -288,7 +288,7 @@ const InvestmentSuggestions: React.FC = () => {
 
                     <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                       <p className="text-sm text-green-700">
-                        <strong>Next Steps:</strong> Contact a financial advisor or investment platform to execute this investment. 
+                        <strong>Next Steps:</strong> Contact a financial advisor or investment platform to execute this investment.
                         Always conduct your own research before investing.
                       </p>
                     </div>
@@ -303,12 +303,28 @@ const InvestmentSuggestions: React.FC = () => {
         {!savingsProjection && (
           <Card>
             <CardContent className="text-center py-12">
-              <div className="text-6xl mb-4">📈</div>
+              <div className="w-20 h-20 mx-auto mb-6">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-full h-full text-blue-600"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24" />
+                  <path d="M21 3v4h-4" />
+                  <path d="M21 3 15 9" />
+                  <path d="M12 8v4l3 3" />
+                </svg>
+              </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
                 Get Personalized Investment Suggestions
               </h3>
               <p className="text-gray-600 mb-6">
-                Set up your income plan and track your expenses to receive AI-powered investment recommendations 
+                Set up your income plan and track your expenses to receive AI-powered investment recommendations
                 tailored to your financial situation and risk profile.
               </p>
               <div className="flex justify-center space-x-4">
@@ -333,24 +349,42 @@ const InvestmentSuggestions: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center p-4 border rounded-lg">
-                <div className="text-3xl mb-2">🏦</div>
-                <h3 className="font-medium mb-2">Conservative</h3>
-                <p className="text-sm text-gray-600">
+              <div className="text-center p-6 rounded-xl bg-gradient-to-b from-blue-50 to-white shadow-md hover:shadow-lg transition-all duration-300">
+                <div className="w-12 h-12 mx-auto mb-4 text-blue-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                    <line x1="3" y1="9" x2="21" y2="9" />
+                    <path d="M8 15h0" />
+                    <path d="M12 15h0" />
+                    <path d="M16 15h0" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold mb-3 text-gray-900">Conservative</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">
                   Low-risk investments like bonds, fixed deposits, and high-yield savings accounts.
                 </p>
               </div>
-              <div className="text-center p-4 border rounded-lg">
-                <div className="text-3xl mb-2">📊</div>
-                <h3 className="font-medium mb-2">Balanced</h3>
-                <p className="text-sm text-gray-600">
+              <div className="text-center p-6 rounded-xl bg-gradient-to-b from-purple-50 to-white shadow-md hover:shadow-lg transition-all duration-300">
+                <div className="w-12 h-12 mx-auto mb-4 text-purple-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="20" x2="12" y2="10" />
+                    <line x1="18" y1="20" x2="18" y2="4" />
+                    <line x1="6" y1="20" x2="6" y2="16" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold mb-3 text-gray-900">Balanced</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">
                   Mix of stocks, bonds, and mutual funds for moderate risk and return.
                 </p>
               </div>
-              <div className="text-center p-4 border rounded-lg">
-                <div className="text-3xl mb-2">🚀</div>
-                <h3 className="font-medium mb-2">Aggressive</h3>
-                <p className="text-sm text-gray-600">
+              <div className="text-center p-6 rounded-xl bg-gradient-to-b from-green-50 to-white shadow-md hover:shadow-lg transition-all duration-300">
+                <div className="w-12 h-12 mx-auto mb-4 text-green-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold mb-3 text-gray-900">Aggressive</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">
                   Higher-risk investments like growth stocks and emerging market funds.
                 </p>
               </div>

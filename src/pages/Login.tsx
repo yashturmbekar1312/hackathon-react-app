@@ -21,6 +21,7 @@ const loginValidationSchema = Yup.object({
     .required('Password is required'),
 });
 
+
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();

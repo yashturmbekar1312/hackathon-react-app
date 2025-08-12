@@ -56,7 +56,7 @@ const otpValidationSchema = Yup.object({
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
-  
+
   const [step, setStep] = useState<'register' | 'otp' | 'success'>('register');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -103,7 +103,7 @@ const Signup: React.FC = () => {
         otpCode: values.otpCode,
         otpType: 'email_verification',
       });
-      
+
       toast.success('Email Verified', {
         description: 'Your account has been successfully created!'
       });
@@ -135,8 +135,8 @@ const Signup: React.FC = () => {
           </CardTitle>
           <CardDescription>
             {step === 'register' ? 'Join thousands managing their finances smarter' :
-             step === 'otp' ? 'We need to verify your email address' :
-             'Your account is ready to use'}
+              step === 'otp' ? 'We need to verify your email address' :
+                'Your account is ready to use'}
           </CardDescription>
         </CardHeader>
 
