@@ -95,18 +95,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const storedUser = authService.getStoredUser();
 
         if (token && storedUser) {
-          // Verify token is still valid by fetching current user
-          try {
-            const currentUser = await authService.getCurrentUser();
-            dispatch({
-              type: 'LOGIN_SUCCESS',
-              payload: { user: currentUser, token },
-            });
-          } catch {
-            // Token is invalid, clear stored data
-            authService.logout();
-            dispatch({ type: 'LOGOUT' });
-          }
+          // For mock authentication, trust the stored user data
+          dispatch({
+            type: 'LOGIN_SUCCESS',
+            payload: { user: storedUser, token },
+          });
         } else {
           dispatch({ type: 'SET_LOADING', payload: false });
         }
