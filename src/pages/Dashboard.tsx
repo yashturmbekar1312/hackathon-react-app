@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useIncomePlans } from "../hooks/useIncomePlans";
 import { useExpenses } from "../hooks/useExpenses";
 import { useInvestments } from "../hooks/useInvestments";
+import { useBankAccounts } from "../hooks/useBankAccounts";
 import {
   Card,
   CardContent,
@@ -18,6 +19,7 @@ import AppLayout from "../components/layout/AppLayout";
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { hasLinkedAccounts } = useBankAccounts();
   const { getMonthlyIncome, getNextPayDate } = useIncomePlans();
   const { getTotalExpenses, getNetSavings, getBudgetAlerts } = useExpenses();
   const { calculateSavingsProjection, savingsProjection } = useInvestments();
@@ -323,6 +325,7 @@ const Dashboard: React.FC = () => {
                   size="sm"
                   onClick={() => navigate("/expenses")}
                   className="flex-col h-auto py-4"
+                  disabled={!hasLinkedAccounts}
                 >
                   <svg
                     className="w-6 h-6 mb-2"
@@ -344,6 +347,7 @@ const Dashboard: React.FC = () => {
                   size="sm"
                   onClick={() => navigate("/investments")}
                   className="flex-col h-auto py-4 col-span-2"
+                  disabled={!hasLinkedAccounts}
                 >
                   <svg
                     className="w-6 h-6 mb-2"
