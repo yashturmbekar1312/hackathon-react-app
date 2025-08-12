@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useInvestments } from "../hooks/useInvestments";
 import { useIncomePlans } from "../hooks/useIncomePlans";
 import { useExpenses } from "../hooks/useExpenses";
+import { useBankAccounts } from "../hooks/useBankAccounts";
 import {
   Card,
   CardContent,
@@ -21,6 +22,7 @@ import AppLayout from "../components/layout/AppLayout";
 const InvestmentSuggestions: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { hasLinkedAccounts } = useBankAccounts();
   const {
     generateSuggestions,
     acceptSuggestion,
@@ -186,7 +188,7 @@ const InvestmentSuggestions: React.FC = () => {
                   <div className="mt-8 text-center">
                     <Button
                       onClick={handleGenerateSuggestions}
-                      disabled={isLoading}
+                      disabled={isLoading || !hasLinkedAccounts}
                       isLoading={isLoading}
                       variant="primary"
                       size="lg"
