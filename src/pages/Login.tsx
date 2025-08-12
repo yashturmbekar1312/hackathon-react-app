@@ -1,46 +1,53 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
-import { useAuth } from '@/context/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoginCredentials } from '@/types/auth.types';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { LoginCredentials } from "../types/auth.types";
+import logo from "../assets/images/logo.png";
 import { toast } from "sonner";
-import { Eye, EyeOff } from 'lucide-react';
-import logo from '../assets/images/logo.png'
-
-// Validation schema
-const loginValidationSchema = Yup.object({
-  email: Yup.string()
-    .email('Please enter a valid email address')
-    .required('Email is required'),
-  password: Yup.string()
-    .min(6, 'Password must be at least 6 characters')
-    .required('Password is required'),
-});
-
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const [formData, setFormData] = useState<LoginCredentials>({
+    email: "",
+    password: "",
+  });
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (values: LoginCredentials) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
     try {
-      await login(values);
-      toast.success('Login Successful', {
-        description: 'Welcome back!'
+      await login(formData);
+      toast.success("Login Successful", {
+        description: "Welcome back!",
       });
-      navigate('/dashboard');
+      navigate("/dashboard");
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Login failed';
-      toast.error('Login Failed', {
-        description: errorMessage
+      const errorMessage = err instanceof Error ? err.message : "Login failed";
+      setError(errorMessage);
+      toast.error("Login Failed", {
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);
@@ -48,23 +55,30 @@ const Login: React.FC = () => {
   };
 
   const handleDemoLogin = async () => {
-    const demoCredentials = {
-      email: 'demo@wealthify.com',
-      password: 'password',
-    };
-    
+    setFormData({
+      email: "demo@wealthify.com",
+      password: "password",
+    });
+
+    // Automatically submit with demo credentials
     setIsLoading(true);
+    setError(null);
 
     try {
-      await login(demoCredentials);
-      toast.success('Demo Login Successful', {
-        description: 'Welcome to the demo!'
+      await login({
+        email: "demo@wealthify.com",
+        password: "password",
       });
-      navigate('/dashboard');
+      toast.success("Demo Login Successful", {
+        description: "Welcome to the demo!",
+      });
+      navigate("/dashboard");
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Demo login failed';
-      toast.error('Demo Login Failed', {
-        description: errorMessage
+      const errorMessage =
+        err instanceof Error ? err.message : "Demo login failed";
+      setError(errorMessage);
+      toast.error("Demo Login Failed", {
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);
@@ -72,138 +86,223 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
-      <div className="w-full max-w-md">
-        <Card>
-          <CardHeader className="text-center">
-            <img src={logo} alt="logo" style={{ width: '150px', height: '100%', margin: '0 auto' }} />
-            <CardTitle className="text-3xl font-bold text-gray-900">
-              Welcome to Wealthify
-            </CardTitle>
-            <CardDescription>
-              Smart Salary & Investment Management
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Formik
-              initialValues={{
-                email: '',
-                password: '',
-              }}
-              validationSchema={loginValidationSchema}
-              onSubmit={handleSubmit}
-            >
-              {({ errors, touched, isSubmitting }) => (
-                <Form className="space-y-4">
-                  {/* Email Field */}
-                  <div className="space-y-2">
-                    <label htmlFor="email" className="text-sm font-medium text-gray-700">
-                      Email
-                    </label>
-                    <Field
-                      as={Input}
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="Enter your email"
-                      className={errors.email && touched.email ? 'border-red-500' : ''}
-                    />
-                    <ErrorMessage name="email" component="div" className="text-sm text-red-600" />
-                  </div>
+    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-success-50/30 bg-mesh flex items-center justify-center px-4 animate-fade-in">
+      {/* Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-brand-400/20 to-success-400/20 rounded-full blur-3xl animate-float"></div>
+        <div
+          className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-success-400/20 to-brand-400/20 rounded-full blur-3xl animate-float"
+          style={{ animationDelay: "2s" }}
+        ></div>
+      </div>
 
-                  {/* Password Field */}
-                  <div className="space-y-2">
-                    <label htmlFor="password" className="text-sm font-medium text-gray-700">
-                      Password
-                    </label>
-                    <div className="relative">
-                      <Field
-                        as={Input}
-                        id="password"
-                        name="password"
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="Enter your password"
-                        className={errors.password && touched.password ? 'border-red-500 pr-10' : 'pr-10'}
-                      />
-                      <button
-                        type="button"
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-4 w-4 text-gray-400" />
-                        ) : (
-                          <Eye className="h-4 w-4 text-gray-400" />
-                        )}
-                      </button>
-                    </div>
-                    <ErrorMessage name="password" component="div" className="text-sm text-red-600" />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <input
-                        id="remember-me"
-                        name="remember-me"
-                        type="checkbox"
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      />
-                      <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                        Remember me
-                      </label>
-                    </div>
-
-                    <div className="text-sm">
-                      <Link to="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
-                        Forgot your password?
-                      </Link>
-                    </div>
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={isSubmitting || isLoading}
-                  >
-                    {isLoading ? 'Signing in...' : 'Sign in'}
-                  </Button>
-                </Form>
-              )}
-            </Formik>
-
-            <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Or continue with</span>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  onClick={handleDemoLogin}
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Loading Demo...' : 'Try Demo Account'}
-                </Button>
+      <div className="w-full max-w-md relative z-10">
+        <Card variant="glass" className="overflow-hidden animate-scale-in">
+          {/* Header */}
+          <CardHeader className="text-center bg-gradient-to-br from-white via-white to-brand-50/30 border-b border-white/20">
+            <div className="flex justify-center mb-4">
+              <div className="relative group">
+                <img
+                  src={logo}
+                  alt="Wealthify Logo"
+                  className="h-16 w-auto transition-transform duration-300 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-brand-500/20 to-success-500/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"></div>
               </div>
             </div>
+            <CardTitle className="text-3xl font-bold text-gradient mb-2">
+              Welcome to Wealthify
+            </CardTitle>
+            <CardDescription className="text-base">
+              Smart Salary & Investment Management Platform
+            </CardDescription>
+          </CardHeader>
 
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
-                Don't have an account?{' '}
-                <Link to="/signup" className="font-medium text-blue-600 hover:text-blue-500">
+          <CardContent className="p-8">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Error Message */}
+              {error && (
+                <div className="bg-gradient-to-r from-danger-50 to-danger-100 border border-danger-200 rounded-xl p-4 animate-slide-down">
+                  <div className="flex items-center">
+                    <svg
+                      className="w-5 h-5 text-danger-600 mr-3 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <p className="text-sm font-medium text-danger-700">
+                      {error}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Email Input */}
+              <div className="space-y-2">
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  label="Email Address"
+                  placeholder="Enter your email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  required
+                  variant="default"
+                  icon={
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
+                      />
+                    </svg>
+                  }
+                />
+              </div>
+
+              {/* Password Input */}
+              <div className="space-y-2">
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  label="Password"
+                  placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  required
+                  variant="default"
+                  icon={
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                      />
+                    </svg>
+                  }
+                />
+              </div>
+
+              {/* Login Button */}
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                className="w-full"
+                isLoading={isLoading}
+                disabled={isLoading}
+              >
+                {isLoading ? "Signing in..." : "Sign In"}
+              </Button>
+
+              {/* Divider */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-neutral-300" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white px-3 text-neutral-500 font-medium">
+                    Or
+                  </span>
+                </div>
+              </div>
+
+              {/* Demo Button */}
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="w-full"
+                onClick={handleDemoLogin}
+                disabled={isLoading}
+                icon={
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
+                  </svg>
+                }
+              >
+                Try Demo Account
+              </Button>
+            </form>
+
+            {/* Sign Up Link */}
+            <div className="mt-8 text-center">
+              <p className="text-sm text-neutral-600">
+                Don't have an account?{" "}
+                <Link
+                  to="/signup"
+                  className="font-medium text-brand-600 hover:text-brand-700 transition-colors duration-200"
+                >
                   Sign up
                 </Link>
               </p>
             </div>
+
+            {/* Demo Credentials */}
+            <div className="mt-6 p-4 bg-gradient-to-br from-brand-50 to-success-50 rounded-xl border border-brand-200/50">
+              <h3 className="text-sm font-semibold text-brand-900 mb-3 flex items-center">
+                <svg
+                  className="w-4 h-4 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                Demo Credentials
+              </h3>
+              <div className="space-y-1">
+                <p className="text-xs text-brand-700">
+                  <span className="font-medium">Email:</span> demo@wealthify.com
+                </p>
+                <p className="text-xs text-brand-700">
+                  <span className="font-medium">Password:</span> password
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
+
+        {/* Footer */}
+        <div className="mt-8 text-center text-xs text-neutral-500">
+          <p>© 2025 Wealthify. All rights reserved.</p>
+        </div>
       </div>
     </div>
   );
