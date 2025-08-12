@@ -1,18 +1,284 @@
-import { useState, useCallback, useEffect } from 'react';
-import { useToast } from '../contexts/ErrorContext';
-import { handleApiError } from '../contexts/ErrorContext';
+import { useState, useCallback } from 'react';
+import { userApiService } from '../services/user.api';
+import { accountApiService } from '../services/account.api';
+import { transactionApiService } from '../services/transaction.api';
+import { budgetApiService } from '../services/budget.api';
+import { analyticsApiService } from '../services/analytics.api';
+import { useToast } from '../contexts/ToastContext';
 
-// Generic API hook for CRUD operations
+// Generic API hook for handling loading states and errors
+export function useApiCall<T extends (...args: any[]) => Promise<any>>(
+  apiFunction: T
+) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { showError } = useToast();
+
+  const execute = useCallback(
+    async (...args: Parameters<T>): Promise<ReturnType<T> | null> => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const result = await apiFunction(...args);
+        return result;
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+        setError(errorMessage);
+        showError('API Error', errorMessage);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [apiFunction, showError]
+  );
+
+  return { execute, isLoading, error };
+}
+
+// User Profile Management Hook
+export function useUserProfile() {
+  const { execute: getProfile, isLoading: isGettingProfile, error: getProfileError } = 
+    useApiCall(userApiService.getProfile);
+  
+  const { execute: updateProfile, isLoading: isUpdatingProfile, error: updateProfileError } = 
+    useApiCall(userApiService.updateProfile);
+  
+  const { execute: changePassword, isLoading: isChangingPassword, error: changePasswordError } = 
+    useApiCall(userApiService.changePassword);
+  
+  const { execute: deleteAccount, isLoading: isDeletingAccount, error: deleteAccountError } = 
+    useApiCall(userApiService.deleteAccount);
+
+  return {
+    // Profile methods
+    getProfile,
+    updateProfile,
+    changePassword,
+    deleteAccount,
+    
+    // Loading states
+    isGettingProfile,
+    isUpdatingProfile,
+    isChangingPassword,
+    isDeletingAccount,
+    
+    // Error states
+    getProfileError,
+    updateProfileError,
+    changePasswordError,
+    deleteAccountError,
+    
+    // Combined loading state
+    isLoading: isGettingProfile || isUpdatingProfile || isChangingPassword || isDeletingAccount,
+  };
+}
+
+// Account Management Hook
+export function useAccountManagement() {
+  const { execute: getAllAccounts, isLoading: isGettingAccounts, error: getAccountsError } = 
+    useApiCall(accountApiService.getAllAccounts);
+  
+  const { execute: getAccountById, isLoading: isGettingAccount, error: getAccountError } = 
+    useApiCall(accountApiService.getAccountById);
+  
+  const { execute: createAccount, isLoading: isCreatingAccount, error: createAccountError } = 
+    useApiCall(accountApiService.createAccount);
+  
+  const { execute: updateAccount, isLoading: isUpdatingAccount, error: updateAccountError } = 
+    useApiCall(accountApiService.updateAccount);
+  
+  const { execute: deleteAccount, isLoading: isDeletingAccount, error: deleteAccountError } = 
+    useApiCall(accountApiService.deleteAccount);
+
+  return {
+    // Account methods
+    getAllAccounts,
+    getAccountById,
+    createAccount,
+    updateAccount,
+    deleteAccount,
+    
+    // Loading states
+    isGettingAccounts,
+    isGettingAccount,
+    isCreatingAccount,
+    isUpdatingAccount,
+    isDeletingAccount,
+    
+    // Error states
+    getAccountsError,
+    getAccountError,
+    createAccountError,
+    updateAccountError,
+    deleteAccountError,
+    
+    // Combined loading state
+    isLoading: isGettingAccounts || isGettingAccount || isCreatingAccount || isUpdatingAccount || isDeletingAccount,
+  };
+}
+
+// Transaction Management Hook
+export function useTransactionManagement() {
+  const { execute: getAllTransactions, isLoading: isGettingTransactions, error: getTransactionsError } = 
+    useApiCall(transactionApiService.getAllTransactions);
+  
+  const { execute: getTransactionById, isLoading: isGettingTransaction, error: getTransactionError } = 
+    useApiCall(transactionApiService.getTransactionById);
+  
+  const { execute: createTransaction, isLoading: isCreatingTransaction, error: createTransactionError } = 
+    useApiCall(transactionApiService.createTransaction);
+  
+  const { execute: updateTransaction, isLoading: isUpdatingTransaction, error: updateTransactionError } = 
+    useApiCall(transactionApiService.updateTransaction);
+  
+  const { execute: deleteTransaction, isLoading: isDeletingTransaction, error: deleteTransactionError } = 
+    useApiCall(transactionApiService.deleteTransaction);
+  
+  const { execute: bulkCreateTransactions, isLoading: isBulkCreating, error: bulkCreateError } = 
+    useApiCall(transactionApiService.bulkCreateTransactions);
+
+  return {
+    // Transaction methods
+    getAllTransactions,
+    getTransactionById,
+    createTransaction,
+    updateTransaction,
+    deleteTransaction,
+    bulkCreateTransactions,
+    
+    // Loading states
+    isGettingTransactions,
+    isGettingTransaction,
+    isCreatingTransaction,
+    isUpdatingTransaction,
+    isDeletingTransaction,
+    isBulkCreating,
+    
+    // Error states
+    getTransactionsError,
+    getTransactionError,
+    createTransactionError,
+    updateTransactionError,
+    deleteTransactionError,
+    bulkCreateError,
+    
+    // Combined loading state
+    isLoading: isGettingTransactions || isGettingTransaction || isCreatingTransaction || 
+               isUpdatingTransaction || isDeletingTransaction || isBulkCreating,
+  };
+}
+
+// Budget Management Hook
+export function useBudgetManagement() {
+  const { execute: getAllBudgets, isLoading: isGettingBudgets, error: getBudgetsError } = 
+    useApiCall(budgetApiService.getAllBudgets);
+  
+  const { execute: getBudgetById, isLoading: isGettingBudget, error: getBudgetError } = 
+    useApiCall(budgetApiService.getBudgetById);
+  
+  const { execute: createBudget, isLoading: isCreatingBudget, error: createBudgetError } = 
+    useApiCall(budgetApiService.createBudget);
+  
+  const { execute: updateBudget, isLoading: isUpdatingBudget, error: updateBudgetError } = 
+    useApiCall(budgetApiService.updateBudget);
+  
+  const { execute: deleteBudget, isLoading: isDeletingBudget, error: deleteBudgetError } = 
+    useApiCall(budgetApiService.deleteBudget);
+  
+  const { execute: getBudgetProgress, isLoading: isGettingProgress, error: getProgressError } = 
+    useApiCall(budgetApiService.getBudgetProgress);
+
+  return {
+    // Budget methods
+    getAllBudgets,
+    getBudgetById,
+    createBudget,
+    updateBudget,
+    deleteBudget,
+    getBudgetProgress,
+    
+    // Loading states
+    isGettingBudgets,
+    isGettingBudget,
+    isCreatingBudget,
+    isUpdatingBudget,
+    isDeletingBudget,
+    isGettingProgress,
+    
+    // Error states
+    getBudgetsError,
+    getBudgetError,
+    createBudgetError,
+    updateBudgetError,
+    deleteBudgetError,
+    getProgressError,
+    
+    // Combined loading state
+    isLoading: isGettingBudgets || isGettingBudget || isCreatingBudget || 
+               isUpdatingBudget || isDeletingBudget || isGettingProgress,
+  };
+}
+
+// Analytics Hook
+export function useAnalytics() {
+  const { execute: getDashboardSummary, isLoading: isGettingDashboard, error: getDashboardError } = 
+    useApiCall(analyticsApiService.getDashboardSummary);
+  
+  const { execute: getSpendingAnalysis, isLoading: isGettingSpending, error: getSpendingError } = 
+    useApiCall(analyticsApiService.getSpendingAnalysis);
+  
+  const { execute: getIncomeAnalysis, isLoading: isGettingIncome, error: getIncomeError } = 
+    useApiCall(analyticsApiService.getIncomeAnalysis);
+  
+  const { execute: getCategoryBreakdown, isLoading: isGettingCategories, error: getCategoriesError } = 
+    useApiCall(analyticsApiService.getCategoryBreakdown);
+  
+  const { execute: getMonthlyTrends, isLoading: isGettingTrends, error: getTrendsError } = 
+    useApiCall(analyticsApiService.getMonthlyTrends);
+  
+  const { execute: getCashFlow, isLoading: isGettingCashFlow, error: getCashFlowError } = 
+    useApiCall(analyticsApiService.getCashFlow);
+
+  return {
+    // Analytics methods
+    getDashboardSummary,
+    getSpendingAnalysis,
+    getIncomeAnalysis,
+    getCategoryBreakdown,
+    getMonthlyTrends,
+    getCashFlow,
+    
+    // Loading states
+    isGettingDashboard,
+    isGettingSpending,
+    isGettingIncome,
+    isGettingCategories,
+    isGettingTrends,
+    isGettingCashFlow,
+    
+    // Error states
+    getDashboardError,
+    getSpendingError,
+    getIncomeError,
+    getCategoriesError,
+    getTrendsError,
+    getCashFlowError,
+    
+    // Combined loading state
+    isLoading: isGettingDashboard || isGettingSpending || isGettingIncome || 
+               isGettingCategories || isGettingTrends || isGettingCashFlow,
+  };
+}
+
+// Legacy compatibility - keeping existing API hook structure
 export function useApi<T = any>() {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const toast = useToast();
 
   const execute = useCallback(async (
-    apiCall: () => Promise<T>,
-    showSuccessToast?: string,
-    showErrorToast: boolean = true
+    apiCall: () => Promise<T>
   ) => {
     try {
       setLoading(true);
@@ -21,24 +287,15 @@ export function useApi<T = any>() {
       const result = await apiCall();
       setData(result);
       
-      if (showSuccessToast) {
-        toast.showSuccess('Success', showSuccessToast);
-      }
-      
       return result;
     } catch (err: any) {
-      const appError = handleApiError(err);
-      setError(appError.message);
-      
-      if (showErrorToast) {
-        toast.showError('Error', appError.message);
-      }
-      
-      throw appError;
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setError(errorMessage);
+      throw err;
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, []);
 
   const reset = useCallback(() => {
     setData(null);
@@ -52,298 +309,5 @@ export function useApi<T = any>() {
     error,
     execute,
     reset,
-    setData
   };
-}
-
-// Paginated data hook
-export function usePaginatedApi<T = any>() {
-  const [data, setData] = useState<T[]>([]);
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 10,
-    total: 0,
-    totalPages: 0
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const toast = useToast();
-
-  const fetchPage = useCallback(async (
-    apiCall: (page: number, limit: number) => Promise<{
-      data: T[];
-      pagination: typeof pagination;
-    }>,
-    page: number = 1,
-    limit: number = 10
-  ) => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const result = await apiCall(page, limit);
-      
-      if (page === 1) {
-        setData(result.data);
-      } else {
-        setData(prev => [...prev, ...result.data]);
-      }
-      
-      setPagination(result.pagination);
-      
-      return result;
-    } catch (err: any) {
-      const appError = handleApiError(err);
-      setError(appError.message);
-      toast.showError('Error', appError.message);
-      throw appError;
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
-
-  const loadMore = useCallback(async (
-    apiCall: (page: number, limit: number) => Promise<{
-      data: T[];
-      pagination: typeof pagination;
-    }>
-  ) => {
-    if (pagination.page < pagination.totalPages && !loading) {
-      await fetchPage(apiCall, pagination.page + 1, pagination.limit);
-    }
-  }, [pagination, loading, fetchPage]);
-
-  const refresh = useCallback(async (
-    apiCall: (page: number, limit: number) => Promise<{
-      data: T[];
-      pagination: typeof pagination;
-    }>
-  ) => {
-    await fetchPage(apiCall, 1, pagination.limit);
-  }, [fetchPage, pagination.limit]);
-
-  return {
-    data,
-    pagination,
-    loading,
-    error,
-    fetchPage,
-    loadMore,
-    refresh,
-    hasMore: pagination.page < pagination.totalPages,
-    setData
-  };
-}
-
-// Real-time data hook with WebSocket
-export function useRealTimeData<T = any>(
-  initialFetch?: () => Promise<T>
-) {
-  const [data, setData] = useState<T | null>(null);
-  const [connected, setConnected] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const toast = useToast();
-
-  const connect = useCallback((
-    wsUrl: string,
-    onMessage: (data: any) => void
-  ) => {
-    try {
-      const ws = new WebSocket(wsUrl);
-      
-      ws.onopen = () => {
-        setConnected(true);
-        setError(null);
-      };
-      
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          onMessage(data);
-        } catch (err) {
-          console.error('WebSocket message parsing error:', err);
-        }
-      };
-      
-      ws.onerror = (_error) => {
-        setError('WebSocket connection error');
-        setConnected(false);
-      };
-      
-      ws.onclose = () => {
-        setConnected(false);
-      };
-      
-      return ws;
-    } catch (err) {
-      setError('Failed to connect to real-time updates');
-      return null;
-    }
-  }, []);
-
-  const fetchInitialData = useCallback(async () => {
-    if (!initialFetch) return;
-    
-    try {
-      setLoading(true);
-      setError(null);
-      const result = await initialFetch();
-      setData(result);
-    } catch (err: any) {
-      const appError = handleApiError(err);
-      setError(appError.message);
-      toast.showError('Error', appError.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [initialFetch, toast]);
-
-  return {
-    data,
-    connected,
-    loading,
-    error,
-    setData,
-    connect,
-    fetchInitialData
-  };
-}
-
-// Optimistic updates hook
-export function useOptimisticUpdates<T = any>() {
-  const [data, setData] = useState<T[]>([]);
-  const [optimisticUpdates, setOptimisticUpdates] = useState<Map<string, T>>(new Map());
-  const toast = useToast();
-
-  const addOptimistic = useCallback((id: string, item: T) => {
-    setOptimisticUpdates(prev => new Map(prev).set(id, item));
-  }, []);
-
-  const removeOptimistic = useCallback((id: string) => {
-    setOptimisticUpdates(prev => {
-      const next = new Map(prev);
-      next.delete(id);
-      return next;
-    });
-  }, []);
-
-  const executeWithOptimisticUpdate = useCallback(async <R>(
-    optimisticId: string,
-    optimisticItem: T,
-    apiCall: () => Promise<R>,
-    onSuccess?: (result: R) => void,
-    onError?: (error: any) => void
-  ) => {
-    // Add optimistic update
-    addOptimistic(optimisticId, optimisticItem);
-    
-    try {
-      const result = await apiCall();
-      removeOptimistic(optimisticId);
-      
-      if (onSuccess) {
-        onSuccess(result);
-      }
-      
-      return result;
-    } catch (err: any) {
-      // Remove optimistic update on error
-      removeOptimistic(optimisticId);
-      
-      const appError = handleApiError(err);
-      toast.showError('Error', appError.message);
-      
-      if (onError) {
-        onError(appError);
-      }
-      
-      throw appError;
-    }
-  }, [addOptimistic, removeOptimistic, toast]);
-
-  const getDisplayData = useCallback(() => {
-    const optimisticItems = Array.from(optimisticUpdates.values());
-    return [...data, ...optimisticItems];
-  }, [data, optimisticUpdates]);
-
-  return {
-    data,
-    setData,
-    optimisticUpdates,
-    executeWithOptimisticUpdate,
-    getDisplayData
-  };
-}
-
-// Debounced search hook
-export function useDebouncedSearch<T = any>(
-  searchFn: (query: string) => Promise<T[]>,
-  delay: number = 300
-) {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState<T[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const toast = useToast();
-
-  useEffect(() => {
-    if (!query.trim()) {
-      setResults([]);
-      return;
-    }
-
-    const timeoutId = setTimeout(async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const searchResults = await searchFn(query);
-        setResults(searchResults);
-      } catch (err: any) {
-        const appError = handleApiError(err);
-        setError(appError.message);
-        toast.showError('Search Error', appError.message);
-      } finally {
-        setLoading(false);
-      }
-    }, delay);
-
-    return () => clearTimeout(timeoutId);
-  }, [query, searchFn, delay, toast]);
-
-  return {
-    query,
-    setQuery,
-    results,
-    loading,
-    error,
-    clearResults: () => setResults([])
-  };
-}
-
-// Cache hook for API responses
-export function useApiCache<T = any>(key: string) {
-  const [cache] = useState(() => new Map<string, { data: T; timestamp: number }>());
-  
-  const getCached = useCallback((maxAge: number = 5 * 60 * 1000): T | null => {
-    const cached = cache.get(key);
-    if (!cached) return null;
-    
-    if (Date.now() - cached.timestamp > maxAge) {
-      cache.delete(key);
-      return null;
-    }
-    
-    return cached.data;
-  }, [cache, key]);
-  
-  const setCached = useCallback((data: T) => {
-    cache.set(key, { data, timestamp: Date.now() });
-  }, [cache, key]);
-  
-  const clearCache = useCallback(() => {
-    cache.delete(key);
-  }, [cache, key]);
-  
-  return { getCached, setCached, clearCache };
 }
