@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
-import { AuthState, User, LoginCredentials, SignupData } from '../types/auth.types';
-import { authService } from '../services/auth.service';
+import { AuthState, User, LoginCredentials, SignupData, LoginRequest } from '../types/auth.types';
+import { authApiService } from '../api/endpoints/auth.api';
 
 // Auth Context
 interface AuthContextType extends AuthState {
@@ -117,8 +117,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       dispatch({ type: 'LOGIN_START' });
       
-      // Use mock login for development
-      const response = await authService.mockLogin(credentials);
+      // Use actual Railway API for login
+      const response = await authService.login(credentials);
       
       dispatch({
         type: 'LOGIN_SUCCESS',
@@ -135,8 +135,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       dispatch({ type: 'LOGIN_START' });
       
-      // Use mock register for development
-      const response = await authService.mockRegister(signupData);
+      // Use actual Railway API for registration
+      const response = await authService.register(signupData);
       
       dispatch({
         type: 'LOGIN_SUCCESS',

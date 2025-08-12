@@ -166,7 +166,7 @@ export function useRealTimeData<T = any>(
         }
       };
       
-      ws.onerror = (error) => {
+      ws.onerror = (_error) => {
         setError('WebSocket connection error');
         setConnected(false);
       };
