@@ -57,9 +57,9 @@ const Dashboard: React.FC = () => {
   }, [user]);
 
   const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("en-IN", {
       style: "currency",
-      currency: user?.currency || "USD",
+      currency: user?.currency || "INR",
     }).format(amount);
   };
 

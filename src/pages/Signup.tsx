@@ -175,9 +175,9 @@ const Signup: React.FC = () => {
         email: formData.email,
         password: formData.password,
         name: `${formData.firstName} ${formData.lastName}`,
-        currency: "USD",
+        currency: "INR",
         riskProfile: "balanced" as any,
-        savingsThreshold: 1000,
+        savingsThreshold: 10000, // Adjusted for INR
       });
 
       toast.success("Account created successfully! Welcome to Wealthify!");
@@ -376,7 +376,7 @@ const Signup: React.FC = () => {
 
                   <Input
                     type="number"
-                    placeholder="Annual Income (USD)"
+                    placeholder="Annual Income (INR)"
                     value={formData.annualIncome}
                     onChange={(e) => handleInputChange("annualIncome", e.target.value)}
                     required

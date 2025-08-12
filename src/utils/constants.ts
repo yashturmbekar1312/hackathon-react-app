@@ -11,7 +11,7 @@ export const OTP_EXPIRY_MINUTES = 10;
 export const OTP_LENGTH = 6;
 
 // Savings and Budget
-export const DEFAULT_CURRENCIES = ['USD', 'EUR', 'GBP', 'INR', 'CAD', 'AUD'];
+export const DEFAULT_CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'CAD', 'AUD'];
 export const DEFAULT_BUDGET_ALERT_THRESHOLD = 80; // 80%
 export const SAVINGS_LOW_ALERT_THRESHOLD = 0.9; // 90% of threshold
 
