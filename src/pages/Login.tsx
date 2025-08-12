@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoginCredentials } from '@/types/auth.types';
 import { toast } from "sonner";
+import logo from '../assets/images/logo.png'
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -52,7 +53,7 @@ const Login: React.FC = () => {
       email: 'demo@wealthify.com',
       password: 'password',
     });
-    
+
     // Automatically submit with demo credentials
     setIsLoading(true);
     setError(null);
@@ -82,6 +83,7 @@ const Login: React.FC = () => {
       <div className="w-full max-w-md">
         <Card>
           <CardHeader className="text-center">
+            <img src={logo} alt="logo" style={{ width: '150px', height: '100%', margin: '0 auto' }} />
             <CardTitle className="text-3xl font-bold text-gray-900">
               Welcome to Wealthify
             </CardTitle>
