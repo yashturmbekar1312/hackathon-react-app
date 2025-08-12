@@ -61,7 +61,7 @@ const apiRequest = async <T>(
 class IncomePlanService {
   // 1. Create Income Plan
   async createIncomePlan(data: CreateIncomePlanRequest): Promise<IncomePlan> {
-    return apiRequest<IncomePlan>('/income-plans', {
+    return apiRequest<IncomePlan>('/IncomePlans', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -69,17 +69,17 @@ class IncomePlanService {
 
   // 2. Get All Income Plans
   async getIncomePlans(): Promise<IncomePlan[]> {
-    return apiRequest<IncomePlan[]>('/income-plans');
+    return apiRequest<IncomePlan[]>('/IncomePlans');
   }
 
   // 3. Get Income Plan by ID
   async getIncomePlanById(id: string): Promise<IncomePlan> {
-    return apiRequest<IncomePlan>(`/income-plans/${id}`);
+    return apiRequest<IncomePlan>(`/IncomePlans/${id}`);
   }
 
   // 4. Update Income Plan
   async updateIncomePlan(id: string, data: UpdateIncomePlanRequest): Promise<IncomePlan> {
-    return apiRequest<IncomePlan>(`/income-plans/${id}`, {
+    return apiRequest<IncomePlan>(`/IncomePlans/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
@@ -87,14 +87,14 @@ class IncomePlanService {
 
   // 5. Delete Income Plan
   async deleteIncomePlan(id: string): Promise<void> {
-    return apiRequest<void>(`/income-plans/${id}`, {
+    return apiRequest<void>(`/IncomePlans/${id}`, {
       method: 'DELETE',
     });
   }
 
   // 6. Add Income Source
   async addIncomeSource(planId: string, data: CreateIncomePlanSourceRequest): Promise<IncomePlanSource> {
-    return apiRequest<IncomePlanSource>(`/income-plans/${planId}/sources`, {
+    return apiRequest<IncomePlanSource>(`/IncomePlans/${planId}/sources`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -102,7 +102,7 @@ class IncomePlanService {
 
   // 7. Get Income Sources
   async getIncomeSources(planId: string): Promise<IncomePlanSource[]> {
-    return apiRequest<IncomePlanSource[]>(`/income-plans/${planId}/sources`);
+    return apiRequest<IncomePlanSource[]>(`/IncomePlans/${planId}/sources`);
   }
 
   // 8. Update Income Source
@@ -111,7 +111,7 @@ class IncomePlanService {
     sourceId: string,
     data: UpdateIncomePlanSourceRequest
   ): Promise<IncomePlanSource> {
-    return apiRequest<IncomePlanSource>(`/income-plans/${planId}/sources/${sourceId}`, {
+    return apiRequest<IncomePlanSource>(`/IncomePlans/${planId}/sources/${sourceId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
@@ -119,7 +119,7 @@ class IncomePlanService {
 
   // 9. Delete Income Source
   async deleteIncomeSource(planId: string, sourceId: string): Promise<void> {
-    return apiRequest<void>(`/income-plans/${planId}/sources/${sourceId}`, {
+    return apiRequest<void>(`/IncomePlans/${planId}/sources/${sourceId}`, {
       method: 'DELETE',
     });
   }
@@ -130,7 +130,7 @@ class IncomePlanService {
     sourceId: string,
     data: CreateIncomeEntryRequest
   ): Promise<IncomeEntry> {
-    return apiRequest<IncomeEntry>(`/income-plans/${planId}/sources/${sourceId}/entries`, {
+    return apiRequest<IncomeEntry>(`/IncomePlans/${planId}/sources/${sourceId}/entries`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -138,12 +138,12 @@ class IncomePlanService {
 
   // 11. Get Income Entries
   async getIncomeEntries(planId: string, sourceId: string): Promise<IncomeEntry[]> {
-    return apiRequest<IncomeEntry[]>(`/income-plans/${planId}/sources/${sourceId}/entries`);
+    return apiRequest<IncomeEntry[]>(`/IncomePlans/${planId}/sources/${sourceId}/entries`);
   }
 
   // 12. Add Income Plan Milestone
   async addMilestone(planId: string, data: CreateMilestoneRequest): Promise<IncomePlanMilestone> {
-    return apiRequest<IncomePlanMilestone>(`/income-plans/${planId}/milestones`, {
+    return apiRequest<IncomePlanMilestone>(`/IncomePlans/${planId}/milestones`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -151,7 +151,7 @@ class IncomePlanService {
 
   // 13. Get Income Plan Milestones
   async getMilestones(planId: string): Promise<IncomePlanMilestone[]> {
-    return apiRequest<IncomePlanMilestone[]>(`/income-plans/${planId}/milestones`);
+    return apiRequest<IncomePlanMilestone[]>(`/IncomePlans/${planId}/milestones`);
   }
 
   // 14. Update Milestone
@@ -160,7 +160,7 @@ class IncomePlanService {
     milestoneId: string,
     data: UpdateMilestoneRequest
   ): Promise<IncomePlanMilestone> {
-    return apiRequest<IncomePlanMilestone>(`/income-plans/${planId}/milestones/${milestoneId}`, {
+    return apiRequest<IncomePlanMilestone>(`/IncomePlans/${planId}/milestones/${milestoneId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
@@ -168,7 +168,7 @@ class IncomePlanService {
 
   // 15. Delete Milestone
   async deleteMilestone(planId: string, milestoneId: string): Promise<void> {
-    return apiRequest<void>(`/income-plans/${planId}/milestones/${milestoneId}`, {
+    return apiRequest<void>(`/IncomePlans/${planId}/milestones/${milestoneId}`, {
       method: 'DELETE',
     });
   }
