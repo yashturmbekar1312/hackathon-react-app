@@ -71,6 +71,7 @@ const App: React.FC = () => {
     <Router>
       <AuthProvider>
         <div className="min-h-screen bg-gray-50">
+          <HealthCheck />
           <Routes>
             {/* Public Routes */}
             <Route
