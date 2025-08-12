@@ -46,22 +46,28 @@ class ExpenseService {
     try {
       // Transform frontend Transaction to API payload format
       const amount = Math.abs(transactionData.amount);
+      
+      // Generate a default GUID if no account ID is provided
+      const defaultGuid = "00000000-0000-0000-0000-000000000000";
+      
       const apiPayload = {
-        linkedAccountId: transactionData.accountId || "3fa85f64-5717-4562-b3fc-2c963f66afa6", // Use default GUID if not provided
-        merchantId: "3fa85f64-5717-4562-b3fc-2c963f66afa6", // Default merchant ID
-        categoryId: "3fa85f64-5717-4562-b3fc-2c963f66afa6", // Default category ID
-        amount: Math.max(amount, 0.01), // Ensure minimum 0.01
-        currencyCode: "USD", // Default currency
-        transactionType: transactionData.type === TransactionType.EXPENSE ? "Expense" : "Income",
-        description: transactionData.description,
-        referenceNumber: `REF_${Date.now()}`, // Generate reference number
-        transactionDate: transactionData.date.toISOString().split('T')[0], // YYYY-MM-DD format
-        postedDate: transactionData.date.toISOString().split('T')[0], // Same as transaction date
-        isRecurring: transactionData.isRecurring || false,
-        recurringFrequency: transactionData.isRecurring ? "Monthly" : "", // Default frequency if recurring
-        isTransfer: false, // Default to false
-        transferToAccountId: null, // Only set if it's a transfer
-        externalTransactionId: `EXT_${Date.now()}` // Generate external ID
+        request: {
+          linkedAccountId: transactionData.accountId || defaultGuid, // Use provided accountId or default GUID
+          merchantId: null, // Will be set when merchant data is available
+          categoryId: null, // Will be set when category mapping is available
+          amount: Math.max(amount, 0.01), // Ensure minimum 0.01
+          currencyCode: "USD", // Default currency
+          transactionType: transactionData.type === TransactionType.EXPENSE ? "Expense" : "Income",
+          description: transactionData.description,
+          referenceNumber: `REF_${Date.now()}`, // Generate unique reference number
+          transactionDate: transactionData.date.toISOString().split('T')[0], // YYYY-MM-DD format
+          postedDate: transactionData.date.toISOString().split('T')[0], // Same as transaction date
+          isRecurring: transactionData.isRecurring || false,
+          recurringFrequency: transactionData.isRecurring ? "Monthly" : null, // Only set if recurring
+          isTransfer: false, // Default to false
+          transferToAccountId: null, // Only set if it's a transfer
+          externalTransactionId: `EXT_${Date.now()}` // Generate unique external ID
+        }
       };
       
       console.log('expenseService: Sending API payload:', apiPayload);
@@ -84,7 +90,7 @@ class ExpenseService {
         merchant: transactionData.merchant,
         location: transactionData.location,
         tags: transactionData.tags,
-        accountId: apiPayload.linkedAccountId, // Use linkedAccountId from payload
+        accountId: apiPayload.request.linkedAccountId || undefined, // Use linkedAccountId from payload or undefined
         isRecurring: transactionData.isRecurring,
         recurringId: transactionData.recurringId,
         bankAccountId: transactionData.bankAccountId,
@@ -122,26 +128,48 @@ class ExpenseService {
     }
   }
 
-  // Helper method to map frontend categories to API format
-  // private mapCategoryToApiFormat(category: TransactionCategory): string {
-  //   const categoryMap: Record<TransactionCategory, string> = {
-  //     [TransactionCategory.GROCERIES]: "Food",
-  //     [TransactionCategory.TRANSPORTATION]: "Transportation", 
-  //     [TransactionCategory.ENTERTAINMENT]: "Entertainment",
-  //     [TransactionCategory.UTILITIES]: "Utilities",
-  //     [TransactionCategory.HEALTHCARE]: "Healthcare",
-  //     [TransactionCategory.SHOPPING]: "Shopping",
-  //     [TransactionCategory.FOOD_DINING]: "Food",
-  //     [TransactionCategory.EDUCATION]: "Education",
-  //     [TransactionCategory.SALARY]: "Income",
-  //     [TransactionCategory.INVESTMENT]: "Investment",
-  //     [TransactionCategory.RENT]: "Housing",
-  //     [TransactionCategory.SAVINGS]: "Savings",
-  //     [TransactionCategory.OTHER]: "Other"
-  //   };
+  // Helper method to get category ID for API calls
+  private getCategoryId(category: TransactionCategory): string {
+    // For now, using a default GUID. In production, these should be fetched from the API
+    // or maintained as constants based on your backend's category system
+    const categoryIds: Record<TransactionCategory, string> = {
+      [TransactionCategory.GROCERIES]: "11111111-1111-1111-1111-111111111111",
+      [TransactionCategory.TRANSPORTATION]: "22222222-2222-2222-2222-222222222222",
+      [TransactionCategory.ENTERTAINMENT]: "33333333-3333-3333-3333-333333333333",
+      [TransactionCategory.UTILITIES]: "44444444-4444-4444-4444-444444444444",
+      [TransactionCategory.HEALTHCARE]: "55555555-5555-5555-5555-555555555555",
+      [TransactionCategory.SHOPPING]: "66666666-6666-6666-6666-666666666666",
+      [TransactionCategory.FOOD_DINING]: "77777777-7777-7777-7777-777777777777",
+      [TransactionCategory.EDUCATION]: "88888888-8888-8888-8888-888888888888",
+      [TransactionCategory.SALARY]: "99999999-9999-9999-9999-999999999999",
+      [TransactionCategory.INVESTMENT]: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      [TransactionCategory.RENT]: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+      [TransactionCategory.SAVINGS]: "cccccccc-cccc-cccc-cccc-cccccccccccc",
+      [TransactionCategory.OTHER]: "dddddddd-dddd-dddd-dddd-dddddddddddd"
+    };
     
-  //   return categoryMap[category] || "Other";
-  // }
+    return categoryIds[category] || categoryIds[TransactionCategory.OTHER];
+  }
+
+  // Helper method to map API categories to frontend format
+  private mapApiCategoryToFrontend(categoryName: string): TransactionCategory {
+    const categoryMap: Record<string, TransactionCategory> = {
+      "Food": TransactionCategory.GROCERIES,
+      "Transportation": TransactionCategory.TRANSPORTATION,
+      "Entertainment": TransactionCategory.ENTERTAINMENT,
+      "Utilities": TransactionCategory.UTILITIES,
+      "Healthcare": TransactionCategory.HEALTHCARE,
+      "Shopping": TransactionCategory.SHOPPING,
+      "Education": TransactionCategory.EDUCATION,
+      "Income": TransactionCategory.SALARY,
+      "Investment": TransactionCategory.INVESTMENT,
+      "Housing": TransactionCategory.RENT,
+      "Savings": TransactionCategory.SAVINGS,
+      "Other": TransactionCategory.OTHER
+    };
+    
+    return categoryMap[categoryName] || TransactionCategory.OTHER;
+  }
 
   async updateTransaction(transactionId: string, transactionData: Partial<Transaction>): Promise<Transaction> {
     return await apiService.put<Transaction>(`/transactions/${transactionId}`, transactionData);
@@ -176,18 +204,130 @@ class ExpenseService {
     return await apiService.uploadFile<{ imported: number; errors: string[] }>('/transactions/import-csv', file);
   }
 
+  // Helper function to map numeric periodType to string
+  private mapPeriodTypeToString(periodType: number): string {
+    const periodTypeMap: Record<number, string> = {
+      0: 'Daily',
+      1: 'Weekly', 
+      2: 'Monthly',
+      3: 'Quarterly',
+      4: 'Yearly'
+    };
+    return periodTypeMap[periodType] || 'Monthly';
+  }
+
+  // Helper function to map string period to numeric enum
+  private mapStringToPeriodType(period: string): number {
+    const periodTypeMap: Record<string, number> = {
+      'Daily': 0,
+      'Weekly': 1,
+      'Monthly': 2,
+      'Quarterly': 3,
+      'Yearly': 4
+    };
+    return periodTypeMap[period] ?? 2; // Default to Monthly
+  }
+
   // Budget Management
-  async getBudgets(month?: number, year?: number): Promise<Budget[]> {
-    const params = month && year ? { month, year } : {};
-    return await apiService.get<Budget[]>('/budgets', params);
+  async getBudgets(): Promise<Budget[]> {
+    // API returns budget data with different structure
+    const response = await apiService.get<any[]>('/Budgets');
+    
+    // Transform API response to match frontend Budget interface
+    return response.map((apiBudget): Budget => ({
+      id: apiBudget.id,
+      userId: apiBudget.userId,
+      name: apiBudget.categoryName || 'Budget',
+      category: this.mapApiCategoryToFrontend(apiBudget.categoryName),
+      budgetAmount: apiBudget.budgetAmount,
+      amount: apiBudget.budgetAmount, // Keep for backwards compatibility
+      spent: apiBudget.currentSpent,
+      period: this.mapPeriodTypeToString(apiBudget.periodType),
+      startDate: apiBudget.startDate,
+      endDate: apiBudget.endDate,
+      alertThreshold: apiBudget.utilizationPercentage >= 80 ? 80 : 90, // Default threshold
+      isActive: apiBudget.isActive,
+      createdAt: new Date(apiBudget.createdAt),
+      updatedAt: new Date(apiBudget.updatedAt)
+    }));
   }
 
   async createBudget(budgetData: Omit<Budget, 'id' | 'userId' | 'spent' | 'createdAt' | 'updatedAt'>): Promise<Budget> {
-    return await apiService.post<Budget>('/budgets', budgetData);
+    // Transform frontend Budget data to API format with request wrapper
+    const requestPayload = {
+      request: {
+        categoryId: this.getCategoryId(budgetData.category), // Use proper category ID mapping
+        budgetAmount: Math.max(budgetData.budgetAmount, 0.01), // Ensure minimum amount
+        periodType: this.mapStringToPeriodType(budgetData.period || "Monthly"),
+        startDate: budgetData.startDate,
+        endDate: budgetData.endDate,
+        isActive: budgetData.isActive
+      }
+    };
+    
+    console.log('Creating budget with API payload:', requestPayload);
+    
+    const response = await apiService.post<any>('/Budgets', requestPayload);
+    
+    // Transform API response back to frontend Budget format
+    return {
+      id: response.id,
+      userId: response.userId,
+      name: response.categoryName || budgetData.name,
+      category: budgetData.category,
+      budgetAmount: response.budgetAmount,
+      amount: response.budgetAmount,
+      spent: response.currentSpent || 0,
+      period: this.mapPeriodTypeToString(response.periodType),
+      startDate: response.startDate,
+      endDate: response.endDate,
+      alertThreshold: budgetData.alertThreshold,
+      isActive: response.isActive,
+      createdAt: new Date(response.createdAt),
+      updatedAt: new Date(response.updatedAt)
+    };
   }
 
   async updateBudget(budgetId: string, budgetData: Partial<Budget>): Promise<Budget> {
-    return await apiService.put<Budget>(`/budgets/${budgetId}`, budgetData);
+    // Transform frontend Budget data to API format with request wrapper
+    const requestPayload = {
+      request: {
+        categoryId: budgetData.category ? this.getCategoryId(budgetData.category) : undefined,
+        budgetAmount: budgetData.budgetAmount ? Math.max(budgetData.budgetAmount, 0.01) : undefined,
+        periodType: budgetData.period ? this.mapStringToPeriodType(budgetData.period) : undefined,
+        startDate: budgetData.startDate,
+        endDate: budgetData.endDate,
+        isActive: budgetData.isActive
+      }
+    };
+    
+    // Remove undefined values from request object
+    Object.keys(requestPayload.request).forEach(key => 
+      requestPayload.request[key as keyof typeof requestPayload.request] === undefined && 
+      delete requestPayload.request[key as keyof typeof requestPayload.request]
+    );
+    
+    console.log('Updating budget with API payload:', requestPayload);
+    
+    const response = await apiService.put<any>(`/Budgets/${budgetId}`, requestPayload);
+    
+    // Transform API response back to frontend Budget format
+    return {
+      id: response.id,
+      userId: response.userId,
+      name: response.categoryName || budgetData.name || 'Budget',
+      category: budgetData.category || this.mapApiCategoryToFrontend(response.categoryName),
+      budgetAmount: response.budgetAmount,
+      amount: response.budgetAmount,
+      spent: response.currentSpent || 0,
+      period: this.mapPeriodTypeToString(response.periodType),
+      startDate: response.startDate,
+      endDate: response.endDate,
+      alertThreshold: budgetData.alertThreshold || 80,
+      isActive: response.isActive,
+      createdAt: new Date(response.createdAt),
+      updatedAt: new Date(response.updatedAt)
+    };
   }
 
   async deleteBudget(budgetId: string): Promise<void> {

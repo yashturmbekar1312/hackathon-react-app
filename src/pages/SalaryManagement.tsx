@@ -59,6 +59,22 @@ const SalaryManagement: React.FC = () => {
         { description: 'Your salary information has been saved successfully.' }
       );
       setShowForm(false);
+      
+      // Suggest bank account setup for new plans
+      if (!activePlan) {
+        setTimeout(() => {
+          toast.info(
+            'Link Your Bank Account',
+            { 
+              description: 'Connect your bank account to automatically track salary deposits and expenses.',
+              action: {
+                label: 'Set up Account',
+                onClick: () => navigate('/expenses')
+              }
+            }
+          );
+        }, 2000);
+      }
     } catch (err) {
       console.error('Failed to save income plan:', err);
       toast.error(

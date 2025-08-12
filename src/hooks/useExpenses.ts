@@ -97,14 +97,15 @@ export const useExpenses = () => {
   const createBudget = async (budgetData: Omit<Budget, 'id' | 'userId' | 'spent' | 'createdAt' | 'updatedAt'>) => {
     try {
       setError(null);
-      const newBudget: Budget = {
-        ...budgetData,
-        id: `budget_${Date.now()}`,
-        userId: user?.id || '',
-        spent: 0,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+      
+      // Call ONLY the actual API service - no mocks
+      console.log('useExpenses: Calling API expenseService.createBudget');
+      const newBudget = await expenseService.createBudget(budgetData);
+      console.log('useExpenses: API call successful, budget created:', newBudget);
       
       setBudgets(prev => [...prev, newBudget]);
       return newBudget;
@@ -119,13 +120,22 @@ export const useExpenses = () => {
   const updateBudget = async (budgetId: string, budgetData: Partial<Budget>) => {
     try {
       setError(null);
+      
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+      
+      // Call ONLY the actual API service - no mocks
+      console.log('useExpenses: Calling API expenseService.updateBudget');
+      const updatedBudget = await expenseService.updateBudget(budgetId, budgetData);
+      console.log('useExpenses: API call successful, budget updated:', updatedBudget);
+      
       setBudgets(prev => 
         prev.map(budget => 
-          budget.id === budgetId 
-            ? { ...budget, ...budgetData, updatedAt: new Date() }
-            : budget
+          budget.id === budgetId ? updatedBudget : budget
         )
       );
+      return updatedBudget;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update budget';
       setError(errorMessage);
