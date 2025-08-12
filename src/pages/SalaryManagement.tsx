@@ -8,16 +8,16 @@ import {
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { useSalary } from "../hooks/useSalary";
+import { useIncomePlans } from "../hooks/useIncomePlans";
 import { useAuth } from "../context/AuthContext";
-import { PayCycle } from "../types/salary.types";
+import { IncomeFrequency } from "../types/income.types";
 import { toast } from "sonner";
 
 interface SalaryData {
   baseSalary: number;
   allowances: number;
   deductions: number;
-  payFrequency: "monthly" | "biweekly" | "weekly";
+  payFrequency: IncomeFrequency;
   currency: string;
   employer: string;
   payDay: number;
@@ -34,16 +34,25 @@ interface SavingsGoal {
 
 const SalaryManagement: React.FC = () => {
   const { user } = useAuth();
-  const { activePlan, createIncomePlan, updateIncomePlan, isLoading } = useSalary();
+  const { 
+    incomePlans, 
+    createIncomePlan, 
+    updateIncomePlan, 
+    fetchIncomePlans,
+    isLoading 
+  } = useIncomePlans();
+  
+  // Get the active income plan
+  const activePlan = incomePlans.find(plan => plan.isActive) || null;
   
   const [salaryData, setSalaryData] = useState<SalaryData>({
-    baseSalary: activePlan?.expectedNetSalary || 0,
+    baseSalary: 0,
     allowances: 0,
     deductions: 0,
-    payFrequency: "monthly",
+    payFrequency: "MONTHLY",
     currency: user?.currency || "USD",
-    employer: activePlan?.employer || "",
-    payDay: activePlan?.payDay || 1,
+    employer: "",
+    payDay: 1,
   });
 
   const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>([]);
@@ -55,20 +64,23 @@ const SalaryManagement: React.FC = () => {
     priority: "medium" as "high" | "medium" | "low",
   });
 
+  // Load existing data when we have an active plan
   useEffect(() => {
     if (activePlan) {
-      setSalaryData({
-        baseSalary: activePlan.expectedNetSalary,
-        allowances: 0,
-        deductions: 0,
-        payFrequency: activePlan.payCycle === PayCycle.MONTHLY ? "monthly" : 
-                      activePlan.payCycle === PayCycle.BIWEEKLY ? "biweekly" : "weekly",
-        currency: activePlan.currency,
-        employer: activePlan.employer,
-        payDay: activePlan.payDay,
-      });
+      // For now, we'll set default values since the structure has changed
+      // TODO: Load actual income sources from the plan
+      setIsEditing(false);
     }
   }, [activePlan]);
+
+  // Load income plans on mount and clean up old localStorage data
+  useEffect(() => {
+    // Remove old mock salary plans from localStorage
+    localStorage.removeItem('mock_salary_plans');
+    
+    // Load new income plans
+    fetchIncomePlans();
+  }, [fetchIncomePlans]);
 
   const calculateNetSalary = () => {
     return salaryData.baseSalary + salaryData.allowances - salaryData.deductions;
@@ -77,10 +89,14 @@ const SalaryManagement: React.FC = () => {
   const calculateMonthlySalary = () => {
     const netSalary = calculateNetSalary();
     switch (salaryData.payFrequency) {
-      case "weekly":
+      case "WEEKLY":
         return netSalary * 52 / 12;
-      case "biweekly":
-        return netSalary * 26 / 12;
+      case "MONTHLY":
+        return netSalary;
+      case "QUARTERLY":
+        return netSalary / 3;
+      case "YEARLY":
+        return netSalary / 12;
       default:
         return netSalary;
     }
@@ -100,26 +116,46 @@ const SalaryManagement: React.FC = () => {
     }
 
     try {
-      const planData = {
-        employer: salaryData.employer,
-        expectedNetSalary: calculateNetSalary(),
-        payCycle: salaryData.payFrequency.toUpperCase() as any,
-        payDay: salaryData.payDay,
-        currency: salaryData.currency,
-      };
+      const currentYear = new Date().getFullYear();
+      const monthlyEquivalent = calculateMonthlySalary();
+      const targetAmount = monthlyEquivalent * 12; // Annual target
 
       if (activePlan) {
-        await updateIncomePlan(activePlan.id, planData);
-        toast.success("Salary information updated successfully!");
+        // Update existing plan
+        const updateData = {
+          name: `${salaryData.employer} Income Plan`,
+          description: `Income plan for ${salaryData.employer} - ${salaryData.payFrequency} salary`,
+          targetAmount: targetAmount,
+          startDate: new Date(currentYear, 0, 1).toISOString(),
+          endDate: new Date(currentYear, 11, 31).toISOString(),
+          isActive: true,
+        };
+        
+        await updateIncomePlan(activePlan.id, updateData);
+        toast.success("Income plan updated successfully!");
       } else {
-        await createIncomePlan(planData);
-        toast.success("Salary information saved successfully!");
+        // Create new plan
+        const createData = {
+          name: `${salaryData.employer} Income Plan`,
+          description: `Income plan for ${salaryData.employer} - ${salaryData.payFrequency} salary`,
+          targetAmount: targetAmount,
+          startDate: new Date(currentYear, 0, 1).toISOString(),
+          endDate: new Date(currentYear, 11, 31).toISOString(),
+          isActive: true,
+        };
+        
+        await createIncomePlan(createData);
+        
+        // TODO: Create an income source for the salary
+        // This would be done using addIncomeSource with the new plan ID
+        
+        toast.success("Income plan created successfully!");
       }
       
       setIsEditing(false);
     } catch (error: any) {
       console.error("Failed to save salary data:", error);
-      toast.error(error.message || "Failed to save salary information");
+      toast.error(error.message || "Failed to save income information");
     }
   };
 
@@ -272,12 +308,13 @@ const SalaryManagement: React.FC = () => {
                     </label>
                     <select
                       value={salaryData.payFrequency}
-                      onChange={(e) => setSalaryData({...salaryData, payFrequency: e.target.value as any})}
+                      onChange={(e) => setSalaryData({...salaryData, payFrequency: e.target.value as IncomeFrequency})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
                     >
-                      <option value="weekly">Weekly</option>
-                      <option value="biweekly">Bi-weekly</option>
-                      <option value="monthly">Monthly</option>
+                      <option value="WEEKLY">Weekly</option>
+                      <option value="MONTHLY">Monthly</option>
+                      <option value="QUARTERLY">Quarterly</option>
+                      <option value="YEARLY">Yearly</option>
                     </select>
                   </div>
                   <div>
@@ -329,26 +366,31 @@ const SalaryManagement: React.FC = () => {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg">
-                    <h3 className="text-sm font-medium text-blue-800">Employer</h3>
-                    <p className="text-xl font-bold text-blue-900">{salaryData.employer || "Not set"}</p>
+                    <h3 className="text-sm font-medium text-blue-800">Income Plan</h3>
+                    <p className="text-xl font-bold text-blue-900">{activePlan?.name || "Not set"}</p>
                   </div>
                   <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg">
-                    <h3 className="text-sm font-medium text-green-800">Net Salary</h3>
+                    <h3 className="text-sm font-medium text-green-800">Target Amount</h3>
                     <p className="text-xl font-bold text-green-900">
-                      {salaryData.currency} {calculateNetSalary().toLocaleString()}
+                      {salaryData.currency} {activePlan?.targetAmount?.toLocaleString() || "0"}
                     </p>
-                    <p className="text-xs text-green-700 capitalize">{salaryData.payFrequency}</p>
+                    <p className="text-xs text-green-700">Annual</p>
                   </div>
                   <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-lg">
-                    <h3 className="text-sm font-medium text-purple-800">Monthly Income</h3>
+                    <h3 className="text-sm font-medium text-purple-800">Current Progress</h3>
                     <p className="text-xl font-bold text-purple-900">
-                      {salaryData.currency} {calculateMonthlySalary().toLocaleString()}
+                      {salaryData.currency} {activePlan?.currentAmount?.toLocaleString() || "0"}
+                    </p>
+                    <p className="text-xs text-purple-700">
+                      {activePlan ? ((activePlan.currentAmount / activePlan.targetAmount) * 100).toFixed(1) : 0}% complete
                     </p>
                   </div>
                   <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-4 rounded-lg">
-                    <h3 className="text-sm font-medium text-orange-800">Pay Day</h3>
-                    <p className="text-xl font-bold text-orange-900">{salaryData.payDay}</p>
-                    <p className="text-xs text-orange-700">of the month</p>
+                    <h3 className="text-sm font-medium text-orange-800">Status</h3>
+                    <p className="text-xl font-bold text-orange-900">
+                      {activePlan?.isActive ? "Active" : "Inactive"}
+                    </p>
+                    <p className="text-xs text-orange-700">Income plan</p>
                   </div>
                 </div>
               </div>

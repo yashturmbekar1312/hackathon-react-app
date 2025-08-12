@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useInvestments } from "../hooks/useInvestments";
-import { useSalary } from "../hooks/useSalary";
+import { useIncomePlans } from "../hooks/useIncomePlans";
 import { useExpenses } from "../hooks/useExpenses";
 import {
   Card,
@@ -31,7 +31,7 @@ const InvestmentSuggestions: React.FC = () => {
     getAcceptedSuggestions,
     isLoading,
   } = useInvestments();
-  const { getMonthlyIncome } = useSalary();
+  const { getMonthlyIncome } = useIncomePlans();
   const { getTotalExpenses } = useExpenses();
 
   const [hasGeneratedSuggestions, setHasGeneratedSuggestions] = useState(false);

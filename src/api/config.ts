@@ -80,6 +80,17 @@ export const API_ENDPOINTS = {
     PROGRESS: (id: string) => `/goals/${id}/progress`,
   },
   
+  // Income Plans
+  INCOME_PLANS: {
+    BASE: '/income-plans',
+    BY_ID: (id: string) => `/income-plans/${id}`,
+    SOURCES: (planId: string) => `/income-plans/${planId}/sources`,
+    SOURCE_BY_ID: (planId: string, sourceId: string) => `/income-plans/${planId}/sources/${sourceId}`,
+    ENTRIES: (planId: string, sourceId: string) => `/income-plans/${planId}/sources/${sourceId}/entries`,
+    MILESTONES: (planId: string) => `/income-plans/${planId}/milestones`,
+    MILESTONE_BY_ID: (planId: string, milestoneId: string) => `/income-plans/${planId}/milestones/${milestoneId}`,
+  },
+
   // Notifications
   NOTIFICATIONS: {
     BASE: '/notifications',

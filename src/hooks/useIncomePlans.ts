@@ -273,6 +273,57 @@ export const useIncomePlans = () => {
     }
   }, []);
 
+  // Helper Methods
+  const getActiveIncomePlan = useCallback(() => {
+    return incomePlans.find(plan => plan.isActive) || null;
+  }, [incomePlans]);
+
+  const getMonthlyIncome = useCallback((): number => {
+    const activePlan = getActiveIncomePlan();
+    if (!activePlan || !activePlan.targetAmount) return 0;
+    
+    // Assuming the target amount is annual, convert to monthly
+    return activePlan.targetAmount / 12;
+  }, [getActiveIncomePlan]);
+
+  const getNextPayDate = useCallback((): Date | null => {
+    // Since the new income plan structure doesn't store pay day,
+    // we'll return the first day of next month as a default
+    const today = new Date();
+    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+    return nextMonth;
+  }, []);
+
+  const calculateTotalExpectedIncome = useCallback((planId?: string): number => {
+    const sourcesToCalculate = planId 
+      ? incomeSources.filter(source => source.incomePlanId === planId)
+      : incomeSources;
+    
+    return sourcesToCalculate.reduce((total, source) => {
+      if (!source.isActive) return total;
+      
+      // Convert all frequencies to monthly equivalent
+      const monthlyAmount = (() => {
+        switch (source.frequency) {
+          case 'DAILY':
+            return source.expectedAmount * 30.44; // Average days per month
+          case 'WEEKLY':
+            return source.expectedAmount * 4.33; // Average weeks per month
+          case 'MONTHLY':
+            return source.expectedAmount;
+          case 'QUARTERLY':
+            return source.expectedAmount / 3;
+          case 'YEARLY':
+            return source.expectedAmount / 12;
+          default:
+            return source.expectedAmount;
+        }
+      })();
+      
+      return total + monthlyAmount;
+    }, 0);
+  }, [incomeSources]);
+
   // Load data on mount
   useEffect(() => {
     fetchIncomePlans();
@@ -310,5 +361,11 @@ export const useIncomePlans = () => {
     addMilestone,
     updateMilestone,
     deleteMilestone,
+
+    // Helper Methods
+    getActiveIncomePlan,
+    getMonthlyIncome,
+    getNextPayDate,
+    calculateTotalExpectedIncome,
   };
 };
