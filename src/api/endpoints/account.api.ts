@@ -23,7 +23,7 @@ export class AccountApiService {
    * Link a new bank account
    */
   async linkBankAccount(accountData: LinkAccountRequest): Promise<BankAccount> {
-    const response = await apiClient.post("/api/Accounts/link", accountData);
+    const response = await apiClient.post("/Accounts/link", accountData);
     return response.data as BankAccount;
   }
 
@@ -31,7 +31,7 @@ export class AccountApiService {
    * Get all linked bank accounts
    */
   async getLinkedAccounts(): Promise<BankAccount[]> {
-    const response = await apiClient.get("/api/Accounts");
+    const response = await apiClient.get("/Accounts");
     return response.data as BankAccount[];
   }
 
@@ -39,7 +39,7 @@ export class AccountApiService {
    * Get specific bank account by ID
    */
   async getBankAccountById(accountId: string): Promise<BankAccount> {
-    const response = await apiClient.get(`/api/Accounts/${accountId}`);
+    const response = await apiClient.get(`/Accounts/${accountId}`);
     return response.data as BankAccount;
   }
 
@@ -51,7 +51,7 @@ export class AccountApiService {
     updateData: BankUpdateRequest
   ): Promise<BankAccount> {
     const response = await apiClient.put(
-      `/api/Accounts/${accountId}`,
+      `/Accounts/${accountId}`,
       updateData
     );
     return response.data as BankAccount;
@@ -61,7 +61,7 @@ export class AccountApiService {
    * Delete bank account
    */
   async deleteBankAccount(accountId: string): Promise<void> {
-    await apiClient.delete(`/api/Accounts/${accountId}`);
+    await apiClient.delete(`/Accounts/${accountId}`);
   }
 
   /**
