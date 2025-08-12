@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import SalaryManagement from './pages/SalaryManagement';
 import ExpenseTracking from './pages/ExpenseTracking';
 import InvestmentSuggestions from './pages/InvestmentSuggestions';
+// import HealthCheck from './components/HealthCheck';
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -49,7 +50,7 @@ const App: React.FC = () => {
     <Router>
       <AuthProvider>
         <div className="min-h-screen bg-gray-50">
-          <HealthCheck />
+          {/* <HealthCheck /> */}
           <Routes>
             {/* Public Routes */}
             <Route

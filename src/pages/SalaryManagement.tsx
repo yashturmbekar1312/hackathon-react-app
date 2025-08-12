@@ -5,6 +5,7 @@ import { useSalary } from '../hooks/useSalary';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { Select } from '../components/ui/select';
 import { IncomePlanFormData, PayCycle } from '../types/salary.types';
 
 const SalaryManagement: React.FC = () => {
@@ -24,8 +25,8 @@ const SalaryManagement: React.FC = () => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'expectedNetSalary' || name === 'payDay' 
-        ? parseFloat(value) || 0 
+      [name]: name === 'expectedNetSalary' || name === 'payDay'
+        ? parseFloat(value) || 0
         : value,
     }));
   };
@@ -121,8 +122,8 @@ const SalaryManagement: React.FC = () => {
                   </div>
                 </div>
                 <div className="mt-6">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => setShowForm(true)}
                   >
                     Update Plan
@@ -172,13 +173,12 @@ const SalaryManagement: React.FC = () => {
                     <label htmlFor="currency" className="text-sm font-medium text-gray-700">
                       Currency
                     </label>
-                    <select
+                    <Select
                       id="currency"
                       name="currency"
                       value={formData.currency}
                       onChange={handleInputChange}
                       required
-                      className="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value="USD">USD - US Dollar</option>
                       <option value="EUR">EUR - Euro</option>
@@ -186,7 +186,7 @@ const SalaryManagement: React.FC = () => {
                       <option value="INR">INR - Indian Rupee</option>
                       <option value="CAD">CAD - Canadian Dollar</option>
                       <option value="AUD">AUD - Australian Dollar</option>
-                    </select>
+                    </Select>
                   </div>
                 </div>
 
@@ -212,19 +212,18 @@ const SalaryManagement: React.FC = () => {
                     <label htmlFor="payCycle" className="text-sm font-medium text-gray-700">
                       Pay Cycle
                     </label>
-                    <select
+                    <Select
                       id="payCycle"
                       name="payCycle"
                       value={formData.payCycle}
                       onChange={handleInputChange}
                       required
-                      className="w-full h-10 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value={PayCycle.WEEKLY}>Weekly</option>
                       <option value={PayCycle.BIWEEKLY}>Bi-weekly</option>
                       <option value={PayCycle.MONTHLY}>Monthly</option>
                       <option value={PayCycle.QUARTERLY}>Quarterly</option>
-                    </select>
+                    </Select>
                   </div>
                 </div>
 

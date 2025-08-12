@@ -6,6 +6,7 @@ import { useExpenses } from '../hooks/useExpenses';
 import { useInvestments } from '../hooks/useInvestments';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
+import logo from "../assets/images/logo.png"
 
 const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
@@ -61,8 +62,8 @@ const Dashboard: React.FC = () => {
   };
 
   const budgetAlerts = getBudgetAlerts();
-  const savingsRate = dashboardData.monthlyIncome > 0 
-    ? (dashboardData.netSavings / dashboardData.monthlyIncome) * 100 
+  const savingsRate = dashboardData.monthlyIncome > 0
+    ? (dashboardData.netSavings / dashboardData.monthlyIncome) * 100
     : 0;
 
   return (
@@ -72,7 +73,8 @@ const Dashboard: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">Wealthify</h1>
+              {/* <h1 className="text-2xl font-bold text-gray-900">Wealthify</h1> */}
+              <img src={logo} alt="logo" style={{ width: '150px', height: 'auto' }} />
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-gray-700">Welcome, {user?.name || 'User'}</span>
@@ -245,34 +247,50 @@ const Dashboard: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="text-3xl mb-2">💰</div>
-                  <h3 className="font-medium mb-2">Set Income Plan</h3>
-                  <p className="text-sm text-gray-600 mb-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center p-6 rounded-xl bg-gradient-to-b from-green-50 to-white shadow-md hover:shadow-lg transition-shadow duration-300">
+                  <div className="w-12 h-12 mx-auto mb-4 text-green-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="8" />
+                      <line x1="12" y1="8" x2="12" y2="12" />
+                      <line x1="12" y1="16" x2="12" y2="16" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2 text-gray-900">Set Income Plan</h3>
+                  <p className="text-sm text-gray-600 mb-6">
                     Add your salary details and payment schedule
                   </p>
-                  <Button variant="outline" onClick={() => navigate('/salary')}>
+                  <Button variant="outline" onClick={() => navigate('/salary')} className="w-full">
                     Setup Income
                   </Button>
                 </div>
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="text-3xl mb-2">📊</div>
-                  <h3 className="font-medium mb-2">Track Expenses</h3>
-                  <p className="text-sm text-gray-600 mb-4">
+                <div className="text-center p-6 rounded-xl bg-gradient-to-b from-green-50 to-white shadow-md hover:shadow-lg transition-shadow duration-300">
+                  <div className="w-12 h-12 mx-auto mb-4 text-green-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="20" x2="12" y2="10" />
+                      <line x1="18" y1="20" x2="18" y2="4" />
+                      <line x1="6" y1="20" x2="6" y2="16" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2 text-gray-900">Track Expenses</h3>
+                  <p className="text-sm text-gray-600 mb-6">
                     Import transactions and create budgets
                   </p>
-                  <Button variant="outline" onClick={() => navigate('/expenses')}>
+                  <Button variant="outline" onClick={() => navigate('/expenses')} className="w-full">
                     Track Expenses
                   </Button>
                 </div>
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="text-3xl mb-2">📈</div>
-                  <h3 className="font-medium mb-2">Get Investment Ideas</h3>
-                  <p className="text-sm text-gray-600 mb-4">
+                <div className="text-center p-6 rounded-xl bg-gradient-to-b from-green-50 to-white shadow-md hover:shadow-lg transition-shadow duration-300">
+                  <div className="w-12 h-12 mx-auto mb-4 text-green-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2 text-gray-900">Get Investment Ideas</h3>
+                  <p className="text-sm text-gray-600 mb-6">
                     Receive AI-powered investment suggestions
                   </p>
-                  <Button variant="outline" onClick={() => navigate('/investments')}>
+                  <Button variant="outline" onClick={() => navigate('/investments')} className="w-full">
                     See Suggestions
                   </Button>
                 </div>

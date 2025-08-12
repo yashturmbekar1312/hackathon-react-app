@@ -26,11 +26,11 @@ interface FormErrors {
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
-  
+
   const [step, setStep] = useState<'register' | 'otp' | 'success'>('register');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Form state
   const [formData, setFormData] = useState<FormData>({
     email: '',
@@ -48,7 +48,7 @@ const Signup: React.FC = () => {
   // Handle input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
+
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -125,7 +125,7 @@ const Signup: React.FC = () => {
         acceptTerms: true, // User implicitly accepts by signing up
         marketingConsent: false,
       });
-      
+
       toast.success('Registration Successful', {
         description: 'Please check your email for the OTP code.'
       });
@@ -164,7 +164,7 @@ const Signup: React.FC = () => {
         otpCode: otpCode,
         otpType: 'email_verification',
       });
-      
+
       toast.success('Email Verified', {
         description: 'Your account has been successfully created!'
       });
@@ -200,14 +200,14 @@ const Signup: React.FC = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
-            {step === 'register' ? 'Create Account' : 
-             step === 'otp' ? 'Verify Email' : 
-             'Welcome!'}
+            {step === 'register' ? 'Create Account' :
+              step === 'otp' ? 'Verify Email' :
+                'Welcome!'}
           </CardTitle>
           <CardDescription className="text-center">
             {step === 'register' ? 'Join thousands managing their finances smarter' :
-             step === 'otp' ? 'We need to verify your email address' :
-             'Your account is ready to use'}
+              step === 'otp' ? 'We need to verify your email address' :
+                'Your account is ready to use'}
           </CardDescription>
         </CardHeader>
 
@@ -360,7 +360,7 @@ const Signup: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-600 bg-transparent hover:bg-transparent focus:outline-none"
                   >
                     {showPassword ? (
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -412,9 +412,9 @@ const Signup: React.FC = () => {
                 )}
               </div>
 
-              <Button 
-                type="submit" 
-                className="w-full" 
+              <Button
+                type="submit"
+                className="w-full"
                 disabled={isLoading}
               >
                 {isLoading ? (
