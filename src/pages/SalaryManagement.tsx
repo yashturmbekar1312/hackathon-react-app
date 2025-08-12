@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSalary } from '../hooks/useSalary';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -8,6 +9,7 @@ import { IncomePlanFormData, PayCycle } from '../types/salary.types';
 
 const SalaryManagement: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { activePlan, createIncomePlan, isLoading, error, getNextPayDate, getMonthlyIncome } = useSalary();
   const [showForm, setShowForm] = useState(!activePlan);
   const [formData, setFormData] = useState<IncomePlanFormData>({
@@ -63,7 +65,7 @@ const SalaryManagement: React.FC = () => {
             <div className="flex items-center">
               <h1 className="text-2xl font-bold text-gray-900">Salary Management</h1>
             </div>
-            <Button variant="outline" onClick={() => window.location.href = '/dashboard'}>
+            <Button variant="outline" onClick={() => navigate('/dashboard')}>
               Back to Dashboard
             </Button>
           </div>

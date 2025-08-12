@@ -1,19 +1,32 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import { API_BASE_URL, TOKEN_STORAGE_KEY } from '../utils/constants';
 
-// Types for API responses
+// Types for API responses - Updated to match API specification
 export interface ApiError {
   message: string;
   status: number;
   code?: string;
 }
 
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+  pagination?: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+  };
+  timestamp: string;
+}
+
 export interface PaginatedResponse<T> {
   data: T[];
   pagination: {
     page: number;
-    limit: number;
-    total: number;
+    pageSize: number;
+    totalItems: number;
     totalPages: number;
   };
 }
@@ -204,6 +217,12 @@ class ApiService {
 
   async delete<T>(url: string, withRetry: boolean = false): Promise<T> {
     const requestFn = () => this.api.delete<T>(url).then(response => response.data);
+    return withRetry ? this.retryRequest(requestFn) : requestFn();
+  }
+
+  // Delete with data (for requests that need body in DELETE)
+  async deleteWithData<T>(url: string, data?: any, withRetry: boolean = false): Promise<T> {
+    const requestFn = () => this.api.delete<T>(url, { data }).then(response => response.data);
     return withRetry ? this.retryRequest(requestFn) : requestFn();
   }
 

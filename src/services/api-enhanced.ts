@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
+import axios, { AxiosInstance, AxiosError } from 'axios';
 import { API_BASE_URL, TOKEN_STORAGE_KEY } from '../utils/constants';
 
 // Types for API responses

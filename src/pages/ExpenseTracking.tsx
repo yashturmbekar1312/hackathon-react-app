@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useExpenses } from '@/hooks/useExpenses';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +9,7 @@ import { TransactionCategory, TransactionType } from '@/types/expense.types';
 
 const ExpenseTracking: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { 
     transactions, 
     budgets, 
@@ -102,7 +104,7 @@ const ExpenseTracking: React.FC = () => {
             <div className="flex items-center">
               <h1 className="text-2xl font-bold text-gray-900">Expense Tracking</h1>
             </div>
-            <Button variant="outline" onClick={() => window.location.href = '/dashboard'}>
+            <Button variant="outline" onClick={() => navigate('/dashboard')}>
               Back to Dashboard
             </Button>
           </div>

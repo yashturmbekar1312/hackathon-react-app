@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useInvestments } from '@/hooks/useInvestments';
 import { useSalary } from '@/hooks/useSalary';
@@ -9,6 +10,7 @@ import { InvestmentRecommendationParams, TimeHorizon } from '@/types/investment.
 
 const InvestmentSuggestions: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { 
     generateSuggestions, 
     acceptSuggestion, 
@@ -105,7 +107,7 @@ const InvestmentSuggestions: React.FC = () => {
             <div className="flex items-center">
               <h1 className="text-2xl font-bold text-gray-900">Investment Suggestions</h1>
             </div>
-            <Button variant="outline" onClick={() => window.location.href = '/dashboard'}>
+            <Button variant="outline" onClick={() => navigate('/dashboard')}>
               Back to Dashboard
             </Button>
           </div>
@@ -310,10 +312,10 @@ const InvestmentSuggestions: React.FC = () => {
                 tailored to your financial situation and risk profile.
               </p>
               <div className="flex justify-center space-x-4">
-                <Button variant="outline" onClick={() => window.location.href = '/salary'}>
+                <Button variant="outline" onClick={() => navigate('/salary')}>
                   Set Income Plan
                 </Button>
-                <Button onClick={() => window.location.href = '/expenses'}>
+                <Button onClick={() => navigate('/expenses')}>
                   Track Expenses
                 </Button>
               </div>
