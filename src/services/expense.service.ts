@@ -56,7 +56,7 @@ class ExpenseService {
           merchantId: null, // Will be set when merchant data is available
           categoryId: null, // Will be set when category mapping is available
           amount: Math.max(amount, 0.01), // Ensure minimum 0.01
-          currencyCode: "USD", // Default currency
+          currencyCode: "INR", // Default currency
           transactionType: transactionData.type === TransactionType.EXPENSE ? "Expense" : "Income",
           description: transactionData.description,
           referenceNumber: `REF_${Date.now()}`, // Generate unique reference number

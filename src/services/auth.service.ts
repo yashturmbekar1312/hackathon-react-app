@@ -15,6 +15,18 @@ class AuthService {
    * POST /auth/register
    */
   async register(signupData: SignupData): Promise<AuthResponse> {
+    // Transform the data to match API expectations
+    const apiPayload = {
+      email: signupData.email,
+      password: signupData.password,
+      firstName: signupData.firstName,
+      lastName: signupData.lastName,
+      phoneNumber: signupData.phoneNumber || '',
+      dateOfBirth: signupData.dateOfBirth || new Date().toISOString().split('T')[0],
+      currency: signupData.currency || 'INR',
+      occupation: signupData.occupation || ''
+    };
+
     const response = await apiService.post<ApiResponse<{
       accessToken: string;
       refreshToken: string;
@@ -27,7 +39,7 @@ class AuthService {
         phoneNumber?: string;
         isEmailVerified?: boolean;
       };
-    }>>('/auth/register', signupData);
+    }>>('/auth/register', apiPayload);
     
     // Extract the actual token and user from the response
     const apiData = response.data;
@@ -39,9 +51,9 @@ class AuthService {
       id: apiUser.id,
       email: apiUser.email,
       name: `${apiUser.firstName} ${apiUser.lastName}`, // ← Combine firstName + lastName
-      currency: 'USD', // ← Default values for missing fields
+      currency: 'INR', // ← Default values for missing fields
       riskProfile: 'balanced' as any,
-      savingsThreshold: 5000,
+      savingsThreshold: 50000,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -108,9 +120,9 @@ class AuthService {
       id: apiUser.id,
       email: apiUser.email,
       name: `${apiUser.firstName} ${apiUser.lastName}`, // ← Combine firstName + lastName
-      currency: 'USD', // ← Default values for missing fields
+      currency: 'INR', // ← Default values for missing fields
       riskProfile: 'balanced' as any,
-      savingsThreshold: 5000,
+      savingsThreshold: 50000,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -261,7 +273,7 @@ class AuthService {
     const user: User = {
       id: `user_${Date.now()}`,
       email: signupData.email,
-      name: signupData.name,
+      name: `${signupData.firstName} ${signupData.lastName}`,
       currency: signupData.currency,
       riskProfile: signupData.riskProfile,
       savingsThreshold: signupData.savingsThreshold,
@@ -287,9 +299,9 @@ class AuthService {
         id: 'user_demo',
         email: credentials.email,
         name: 'Demo User',
-        currency: 'USD',
+        currency: 'INR',
         riskProfile: 'balanced' as any,
-        savingsThreshold: 5000,
+        savingsThreshold: 50000,
         createdAt: new Date(),
         updatedAt: new Date()
       };

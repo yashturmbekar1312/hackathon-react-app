@@ -95,7 +95,9 @@ const Signup: React.FC = () => {
 
     const passwordStrength = checkPasswordStrength(password);
     if (passwordStrength.score < 5) {
-      toast.error(`Password requirements: ${passwordStrength.feedback.join(", ")}`);
+      toast.error(
+        `Password requirements: ${passwordStrength.feedback.join(", ")}`
+      );
       return false;
     }
 
@@ -124,9 +126,9 @@ const Signup: React.FC = () => {
   };
 
   const handleInputChange = (field: keyof SignupData, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -167,11 +169,15 @@ const Signup: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-brand-primary-50 via-brand-accent-50 to-brand-secondary-50 flex items-center justify-center p-4">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-20"></div>
-      
+
       <div className="relative w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <img src={logo} alt="Wealthify" className="h-12 w-auto mx-auto mb-4" />
+          <img
+            src={logo}
+            alt="Wealthify"
+            className="h-12 w-auto mx-auto mb-4"
+          />
           <h1 className="text-2xl font-bold text-brand-dark">Join Wealthify</h1>
           <p className="text-brand-muted mt-2">
             Start your journey to financial freedom
@@ -325,11 +331,17 @@ const Signup: React.FC = () => {
         <div className="mt-6 text-center">
           <p className="text-xs text-brand-muted">
             By creating an account, you agree to our{" "}
-            <a href="#" className="underline hover:text-brand-primary transition-colors">
+            <a
+              href="#"
+              className="underline hover:text-brand-primary transition-colors"
+            >
               Terms of Service
             </a>{" "}
             and{" "}
-            <a href="#" className="underline hover:text-brand-primary transition-colors">
+            <a
+              href="#"
+              className="underline hover:text-brand-primary transition-colors"
+            >
               Privacy Policy
             </a>
           </p>

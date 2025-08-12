@@ -38,11 +38,11 @@ const Dashboard: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Monthly Salary:</span>
-                  <span className="font-semibold">$5,000</span>
+                  <span className="font-semibold">₹4,00,000</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Net Income:</span>
-                  <span className="font-semibold">$4,200</span>
+                  <span className="font-semibold">₹3,36,000</span>
                 </div>
               </div>
             </div>
@@ -53,11 +53,11 @@ const Dashboard: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-600">This Month:</span>
-                  <span className="font-semibold">$2,800</span>
+                  <span className="font-semibold">₹2,24,000</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Remaining Budget:</span>
-                  <span className="font-semibold text-green-600">$1,400</span>
+                  <span className="font-semibold text-green-600">₹1,12,000</span>
                 </div>
               </div>
             </div>
@@ -68,7 +68,7 @@ const Dashboard: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Portfolio Value:</span>
-                  <span className="font-semibold">$15,000</span>
+                  <span className="font-semibold">₹12,00,000</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Monthly Return:</span>
