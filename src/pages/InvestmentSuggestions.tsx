@@ -17,6 +17,7 @@ import {
   InvestmentRecommendationParams,
   TimeHorizon,
 } from "../types/investment.types";
+import { RiskProfile } from "../types/auth.types";
 import AppLayout from "../components/layout/AppLayout";
 
 const InvestmentSuggestions: React.FC = () => {
@@ -42,12 +43,13 @@ const InvestmentSuggestions: React.FC = () => {
     const initializeData = async () => {
       const monthlyIncome = getMonthlyIncome();
       const totalExpenses = getTotalExpenses();
+      const hardcodedSavingsThreshold = 10000; // Hardcoded savings threshold (INR)
 
-      if (monthlyIncome > 0 && user?.savingsThreshold) {
+      if (monthlyIncome > 0) {
         await calculateSavingsProjection(
           monthlyIncome,
           totalExpenses,
-          user.savingsThreshold
+          hardcodedSavingsThreshold
         );
       }
     };
@@ -60,7 +62,7 @@ const InvestmentSuggestions: React.FC = () => {
 
     const params: InvestmentRecommendationParams = {
       surplusAmount: savingsProjection.surplusAmount,
-      riskProfile: user.riskProfile,
+      riskProfile: RiskProfile.BALANCED, // Hardcoded risk profile
       age: 30, // Mock age
       monthlyIncome: getMonthlyIncome(),
       existingInvestments: 0, // Mock existing investments
@@ -250,7 +252,7 @@ const InvestmentSuggestions: React.FC = () => {
                 </div>
                 <p className="text-sm text-brand-700">
                   Aim to save at least{" "}
-                  {formatCurrency(user?.savingsThreshold || 1000)} per month
+                  {formatCurrency(10000)} per month
                   before investing. This ensures you have a safety net for
                   unexpected expenses.
                 </p>

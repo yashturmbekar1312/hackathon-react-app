@@ -311,59 +311,6 @@ class AuthService {
     };
   }
 
-  async mockRegister(signupData: SignupData): Promise<AuthResponse> {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    const user: User = {
-      id: `user_${Date.now()}`,
-      email: signupData.email,
-      name: `${signupData.firstName} ${signupData.lastName}`,
-      currency: signupData.currency,
-      riskProfile: signupData.riskProfile,
-      savingsThreshold: signupData.savingsThreshold,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    const token = `mock_token_${Date.now()}`;
-
-    localStorage.setItem(TOKEN_STORAGE_KEY, token);
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
-
-    return { user, token };
-  }
-
-  async mockLogin(credentials: LoginCredentials): Promise<AuthResponse> {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // Mock validation
-    if (
-      credentials.email === "demo@wealthify.com" &&
-      credentials.password === "password"
-    ) {
-      const user: User = {
-        id: "user_demo",
-        email: credentials.email,
-        name: "Demo User",
-        currency: "INR",
-        riskProfile: "balanced" as any,
-        savingsThreshold: 50000,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      const token = `mock_token_${Date.now()}`;
-
-      localStorage.setItem(TOKEN_STORAGE_KEY, token);
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
-
-      return { user, token };
-    } else {
-      throw new Error("Invalid credentials");
-    }
-  }
 }
 
 export const authService = new AuthService();

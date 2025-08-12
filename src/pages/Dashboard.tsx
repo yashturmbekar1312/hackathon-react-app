@@ -46,11 +46,12 @@ const Dashboard: React.FC = () => {
       });
 
       // Calculate savings projection
-      if (monthlyIncome > 0 && user?.savingsThreshold) {
+      const hardcodedSavingsThreshold = 10000; // Hardcoded savings threshold (INR)
+      if (monthlyIncome > 0) {
         await calculateSavingsProjection(
           monthlyIncome,
           totalExpenses,
-          user.savingsThreshold
+          hardcodedSavingsThreshold
         );
       }
     };

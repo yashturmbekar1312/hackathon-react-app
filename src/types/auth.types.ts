@@ -11,8 +11,6 @@ export interface User {
   email: string;
   name: string;
   currency: string;
-  riskProfile: RiskProfile;
-  savingsThreshold: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -60,8 +58,6 @@ export interface SignupData {
   currency: string;
   occupation?: string;
   annualIncome?: number;
-  riskProfile?: RiskProfile;
-  savingsThreshold?: number;
 }
 
 export interface OTPVerification {
