@@ -1,4 +1,5 @@
 import { apiService, PaginatedResponse } from './api-enhanced';
+import { STORAGE_KEYS } from '../api/config';
 
 // Dashboard data types
 export interface DashboardData {
@@ -167,7 +168,7 @@ class DashboardService {
       const response = await fetch(`${apiService['api'].defaults.baseURL}/dashboard/export`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('wealthify_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)}`,
         },
         body: JSON.stringify(params)
       });
@@ -190,7 +191,7 @@ class DashboardService {
     onClose?: (event: CloseEvent) => void
   ): void {
     try {
-      const token = localStorage.getItem('wealthify_token');
+      const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
       if (!token) {
         throw new Error('No authentication token found');
       }

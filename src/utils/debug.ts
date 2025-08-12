@@ -1,8 +1,9 @@
 // Debug utilities for troubleshooting authentication issues
+import { STORAGE_KEYS } from "../api/config";
 
 export const debugAuth = () => {
-  const token = localStorage.getItem('wealthify_token');
-  const user = localStorage.getItem('wealthify_user');
+  const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+  const user = localStorage.getItem(STORAGE_KEYS.USER_PROFILE);
   
   console.log('🔍 DEBUG: Auth State Check');
   console.log('📝 Token:', token ? `${token.substring(0, 30)}...` : 'NO TOKEN');
@@ -19,7 +20,7 @@ export const debugAuth = () => {
 
 export const testAPICall = async () => {
   try {
-    const token = localStorage.getItem('wealthify_token');
+    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
     console.log('🧪 Testing API call with token:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
     
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api'}/transactions`, {

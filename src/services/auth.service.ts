@@ -7,7 +7,7 @@ import {
   OTPVerification,
   User,
 } from "../types/auth.types";
-import { TOKEN_STORAGE_KEY, USER_STORAGE_KEY } from "../utils/constants";
+import { STORAGE_KEYS } from "../api/config";
 
 class AuthService {
   /**
@@ -63,8 +63,12 @@ class AuthService {
 
     // Store token and user data
     if (token) {
-      localStorage.setItem(TOKEN_STORAGE_KEY, token);
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
+      localStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(user));
+      // Also store refresh token if available
+      if (apiData.refreshToken) {
+        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, apiData.refreshToken);
+      }
     }
 
     // Return in the format expected by AuthContext
@@ -149,12 +153,16 @@ class AuthService {
       );
       console.log("💾 AuthService: Storing user:", user);
 
-      localStorage.setItem(TOKEN_STORAGE_KEY, token);
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
+      localStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(user));
+      // Also store refresh token if available
+      if (apiData.refreshToken) {
+        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, apiData.refreshToken);
+      }
 
       // Verify storage
-      const storedToken = localStorage.getItem(TOKEN_STORAGE_KEY);
-      const storedUser = localStorage.getItem(USER_STORAGE_KEY);
+      const storedToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+      const storedUser = localStorage.getItem(STORAGE_KEYS.USER_PROFILE);
       console.log(
         "✅ AuthService: Token stored successfully:",
         storedToken ? storedToken.substring(0, 20) + "..." : "FAILED"
@@ -181,8 +189,9 @@ class AuthService {
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      localStorage.removeItem(TOKEN_STORAGE_KEY);
-      localStorage.removeItem(USER_STORAGE_KEY);
+      localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.USER_PROFILE);
     }
   }
 
@@ -204,7 +213,7 @@ class AuthService {
       "/auth/profile",
       userData
     );
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.data));
+    localStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(response.data));
     return response.data;
   }
 
@@ -269,18 +278,18 @@ class AuthService {
 
   // Check if user is authenticated
   isAuthenticated(): boolean {
-    const token = localStorage.getItem(TOKEN_STORAGE_KEY);
+    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
     return !!token;
   }
 
   // Get stored token
   getToken(): string | null {
-    return localStorage.getItem(TOKEN_STORAGE_KEY);
+    return localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
   }
 
   // Get stored user
   getStoredUser(): User | null {
-    const userStr = localStorage.getItem(USER_STORAGE_KEY);
+    const userStr = localStorage.getItem(STORAGE_KEYS.USER_PROFILE);
     if (userStr) {
       try {
         return JSON.parse(userStr);

@@ -17,7 +17,7 @@ import { Input } from "../components/ui/input";
 import { useAuth } from "../context/AuthContext";
 import { userApiService } from "../api/endpoints/user.api";
 import { UpdateProfileRequest, UserProfile } from "../types/auth.types";
-import { API_CONFIG } from "../api/config";
+import { API_CONFIG, STORAGE_KEYS } from "../api/config";
 import { toast } from "sonner";
 
 const Settings: React.FC = () => {
@@ -129,7 +129,7 @@ const Settings: React.FC = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("wealthify_token")}`,
+          Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)}`,
         },
         body: JSON.stringify({ email: userEmail }),
       });
@@ -158,7 +158,7 @@ const Settings: React.FC = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("wealthify_token")}`,
+            Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)}`,
           },
           body: JSON.stringify({
             email: userEmail,

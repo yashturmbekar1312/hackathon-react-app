@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
-import { API_BASE_URL, TOKEN_STORAGE_KEY } from '../utils/constants';
+import { API_BASE_URL } from '../utils/constants';
+import { STORAGE_KEYS } from '../api/config';
 
 // Types for API responses
 export interface ApiError {
@@ -43,7 +44,7 @@ class ApiService {
     // Request interceptor for logging and auth
     this.api.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem(TOKEN_STORAGE_KEY);
+        const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -131,7 +132,7 @@ class ApiService {
       });
       
       const { token } = response.data;
-      localStorage.setItem(TOKEN_STORAGE_KEY, token);
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
       return token;
     } catch (error) {
       throw new Error('Failed to refresh token');
@@ -151,8 +152,9 @@ class ApiService {
   }
 
   private handleAuthError() {
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
-    localStorage.removeItem('wealthify_user');
+    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.USER_PROFILE);
     window.location.href = '/login';
   }
 

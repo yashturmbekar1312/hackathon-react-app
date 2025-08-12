@@ -12,7 +12,7 @@ import {
   SignupData,
 } from "../types/auth.types";
 import { authService } from "../services/auth.service";
-import { validateAuthData, clearAuthData } from "../utils/authDebug";
+import { STORAGE_KEYS } from "../api/config";
 
 // Auth Context
 interface AuthContextType extends AuthState {
@@ -163,7 +163,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Verify the state was updated
       setTimeout(() => {
-        const storedToken = localStorage.getItem("wealthify_token");
+        const storedToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
         console.log(
           "🔍 AuthContext: Token verification after login:",
           storedToken ? storedToken.substring(0, 20) + "..." : "NO TOKEN"
@@ -208,16 +208,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await authService.logout();
 
       // Manually clear localStorage to ensure complete logout
-      localStorage.removeItem("wealthify_token");
-      localStorage.removeItem("wealthify_user");
+      localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.USER_PROFILE);
       console.log("Cleared authentication data from localStorage");
 
       dispatch({ type: "LOGOUT" });
     } catch (error) {
       console.error("Logout error:", error);
       // Force logout even if API call fails
-      localStorage.removeItem("wealthify_token");
-      localStorage.removeItem("wealthify_user");
+      localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.USER_PROFILE);
       dispatch({ type: "LOGOUT" });
     }
   };
