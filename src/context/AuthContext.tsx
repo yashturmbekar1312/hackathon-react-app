@@ -14,6 +14,46 @@ import {
 import { authService } from "../services/auth.service";
 import { STORAGE_KEYS } from "../api/config";
 
+// Utility functions for auth data validation and cleanup
+const validateAuthData = (): boolean => {
+  try {
+    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+    const userStr = localStorage.getItem(STORAGE_KEYS.USER_PROFILE);
+    
+    if (!token || !userStr) {
+      return false;
+    }
+    
+    // Try to parse user data
+    const user = JSON.parse(userStr);
+    if (!user || !user.id || !user.email) {
+      return false;
+    }
+    
+    // Check if token is expired (basic check - decode JWT would be more thorough)
+    // For now, just check if token exists and has proper format
+    if (token.length < 10) {
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error validating auth data:", error);
+    return false;
+  }
+};
+
+const clearAuthData = (): void => {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.USER_PROFILE);
+    console.log("Cleared invalid auth data from localStorage");
+  } catch (error) {
+    console.error("Error clearing auth data:", error);
+  }
+};
+
 // Auth Context
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
