@@ -52,8 +52,12 @@ export interface LoginCredentials {
 export interface SignupData {
   email: string;
   password: string;
-  name: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber?: string;
+  dateOfBirth?: string;
   currency: string;
+  occupation?: string;
   riskProfile: RiskProfile;
   savingsThreshold: number;
 }

@@ -176,7 +176,11 @@ const Signup: React.FC = () => {
       await register({
         email: formData.email,
         password: formData.password,
-        name: `${formData.firstName} ${formData.lastName}`,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phoneNumber: formData.phoneNumber,
+        dateOfBirth: formData.dateOfBirth,
+        occupation: formData.occupation,
         currency: "INR",
         riskProfile: "balanced" as any,
         savingsThreshold: 10000, // Adjusted for INR
