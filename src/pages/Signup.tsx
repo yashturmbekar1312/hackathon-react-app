@@ -182,8 +182,7 @@ const Signup: React.FC = () => {
         dateOfBirth: formData.dateOfBirth,
         occupation: formData.occupation,
         currency: "INR",
-        riskProfile: "balanced" as any,
-        savingsThreshold: 10000, // Adjusted for INR
+        annualIncome: parseFloat(formData.annualIncome) || 0,
       });
 
       toast.success("Account created successfully! Welcome to Wealthify!");

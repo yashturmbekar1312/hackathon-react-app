@@ -1,19 +1,27 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { Toaster } from 'sonner';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import Dashboard from './pages/Dashboard';
-import SalaryManagement from './pages/SalaryManagement';
-import ExpenseTracking from './pages/ExpenseTracking';
-import InvestmentSuggestions from './pages/InvestmentSuggestions';
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { Toaster } from "sonner";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Dashboard from "./pages/Dashboard";
+import SalaryManagement from "./pages/SalaryManagement";
+import ExpenseTracking from "./pages/ExpenseTracking";
+import InvestmentSuggestions from "./pages/InvestmentSuggestions";
+import Settings from "./pages/Settings";
 
 // Import debug utilities
-import './utils/debug';
+import "./utils/debug";
 // import HealthCheck from './components/HealthCheck';
-// Protected Route Component
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+// Protected Route Component - SIMPLIFIED
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
@@ -27,13 +35,10 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     );
   }
 
-  // Check authentication and redirect if needed
-  console.log('ProtectedRoute: isAuthenticated =', isAuthenticated);
-  
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
-// Public Route Component (redirect to dashboard if authenticated)
+// Public Route Component - SIMPLIFIED
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -48,7 +53,11 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     );
   }
 
-  return !isAuthenticated ? <>{children}</> : <Navigate to="/dashboard" replace />;
+  return !isAuthenticated ? (
+    <>{children}</>
+  ) : (
+    <Navigate to="/dashboard" replace />
+  );
 };
 
 const App: React.FC = () => {
@@ -106,6 +115,14 @@ const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <InvestmentSuggestions />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Settings />
                 </ProtectedRoute>
               }
             />

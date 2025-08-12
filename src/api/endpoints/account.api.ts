@@ -50,10 +50,7 @@ export class AccountApiService {
     accountId: string,
     updateData: BankUpdateRequest
   ): Promise<BankAccount> {
-    const response = await apiClient.put(
-      `/Accounts/${accountId}`,
-      updateData
-    );
+    const response = await apiClient.put(`/Accounts/${accountId}`, updateData);
     return response.data as BankAccount;
   }
 

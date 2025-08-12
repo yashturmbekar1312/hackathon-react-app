@@ -3,7 +3,7 @@
  * All types related to authentication flows
  */
 
-import { ApiResponse } from './api.types';
+import { ApiResponse } from "./api.types";
 
 // Legacy User interface for backward compatibility
 export interface User {
@@ -25,6 +25,7 @@ export interface UserProfile {
   lastName: string;
   phoneNumber: string;
   dateOfBirth?: string;
+  occupation?: string;
   avatar?: string;
   isEmailVerified: boolean;
   isPhoneVerified: boolean;
@@ -58,8 +59,9 @@ export interface SignupData {
   dateOfBirth?: string;
   currency: string;
   occupation?: string;
-  riskProfile: RiskProfile;
-  savingsThreshold: number;
+  annualIncome?: number;
+  riskProfile?: RiskProfile;
+  savingsThreshold?: number;
 }
 
 export interface OTPVerification {
@@ -68,9 +70,9 @@ export interface OTPVerification {
 }
 
 export enum RiskProfile {
-  CONSERVATIVE = 'conservative',
-  BALANCED = 'balanced',
-  AGGRESSIVE = 'aggressive'
+  CONSERVATIVE = "conservative",
+  BALANCED = "balanced",
+  AGGRESSIVE = "aggressive",
 }
 
 export interface AuthResponse {
@@ -101,7 +103,7 @@ export interface LoginRequest {
 export interface VerifyOTPRequest {
   email: string;
   otpCode: string;
-  otpType: 'email_verification' | 'password_reset' | 'two_factor';
+  otpType: "email_verification" | "password_reset" | "two_factor";
 }
 
 export interface ForgotPasswordRequest {
@@ -137,10 +139,10 @@ export interface NewAuthResponse {
     accessToken: string;
     refreshToken: string;
     expiresIn: number;
-    tokenType: 'Bearer';
+    tokenType: "Bearer";
   };
   requiresOTP?: boolean;
-  otpType?: 'email_verification' | 'two_factor';
+  otpType?: "email_verification" | "two_factor";
 }
 
 export interface OTPResponse {
@@ -154,7 +156,7 @@ export interface OTPResponse {
 export interface DeviceInfo {
   deviceId: string;
   deviceName: string;
-  deviceType: 'mobile' | 'desktop' | 'tablet';
+  deviceType: "mobile" | "desktop" | "tablet";
   browser?: string;
   os?: string;
   ipAddress?: string;
@@ -166,7 +168,12 @@ export interface DeviceInfo {
 
 export interface SecurityEvent {
   id: string;
-  type: 'login' | 'logout' | 'password_change' | 'failed_login' | 'suspicious_activity';
+  type:
+    | "login"
+    | "logout"
+    | "password_change"
+    | "failed_login"
+    | "suspicious_activity";
   description: string;
   deviceInfo: DeviceInfo;
   timestamp: string;
@@ -183,6 +190,7 @@ export interface UpdateProfileRequest {
   lastName?: string;
   phoneNumber?: string;
   dateOfBirth?: string;
+  occupation?: string;
   avatar?: string;
   currency?: string;
   timezone?: string;
@@ -196,12 +204,19 @@ export interface DeleteAccountRequest {
 }
 
 // API Response Types
-export type RegisterResponse = ApiResponse<{ requiresOTP: boolean; message: string }>;
+export type RegisterResponse = ApiResponse<{
+  requiresOTP: boolean;
+  message: string;
+}>;
 export type LoginResponse = ApiResponse<NewAuthResponse>;
 export type VerifyOTPResponse = ApiResponse<NewAuthResponse>;
 export type ForgotPasswordResponse = ApiResponse<OTPResponse>;
 export type ResetPasswordResponse = ApiResponse<{ message: string }>;
-export type RefreshTokenResponse = ApiResponse<{ accessToken: string; refreshToken: string; expiresIn: number }>;
+export type RefreshTokenResponse = ApiResponse<{
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+}>;
 export type LogoutResponse = ApiResponse<{ message: string }>;
 export type ProfileResponse = ApiResponse<UserProfile>;
 export type UpdateProfileResponse = ApiResponse<UserProfile>;

@@ -1,6 +1,18 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
-import { AuthState, User, LoginCredentials, SignupData } from '../types/auth.types';
-import { authService } from '../services/auth.service';
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+  ReactNode,
+} from "react";
+import {
+  AuthState,
+  User,
+  LoginCredentials,
+  SignupData,
+} from "../types/auth.types";
+import { authService } from "../services/auth.service";
+import { validateAuthData, clearAuthData } from "../utils/authDebug";
 
 // Auth Context
 interface AuthContextType extends AuthState {
@@ -14,12 +26,12 @@ interface AuthContextType extends AuthState {
 
 // Auth Actions
 type AuthAction =
-  | { type: 'LOGIN_START' }
-  | { type: 'LOGIN_SUCCESS'; payload: { user: User; token: string } }
-  | { type: 'LOGIN_FAILURE'; payload: string }
-  | { type: 'LOGOUT' }
-  | { type: 'UPDATE_USER'; payload: User }
-  | { type: 'SET_LOADING'; payload: boolean };
+  | { type: "LOGIN_START" }
+  | { type: "LOGIN_SUCCESS"; payload: { user: User; token: string } }
+  | { type: "LOGIN_FAILURE"; payload: string }
+  | { type: "LOGOUT" }
+  | { type: "UPDATE_USER"; payload: User }
+  | { type: "SET_LOADING"; payload: boolean };
 
 // Initial state
 const initialState: AuthState = {
@@ -32,12 +44,12 @@ const initialState: AuthState = {
 // Auth reducer
 const authReducer = (state: AuthState, action: AuthAction): AuthState => {
   switch (action.type) {
-    case 'LOGIN_START':
+    case "LOGIN_START":
       return {
         ...state,
         isLoading: true,
       };
-    case 'LOGIN_SUCCESS':
+    case "LOGIN_SUCCESS":
       return {
         ...state,
         user: action.payload.user,
@@ -45,7 +57,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         isAuthenticated: true,
         isLoading: false,
       };
-    case 'LOGIN_FAILURE':
+    case "LOGIN_FAILURE":
       return {
         ...state,
         user: null,
@@ -53,7 +65,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         isAuthenticated: false,
         isLoading: false,
       };
-    case 'LOGOUT':
+    case "LOGOUT":
       return {
         ...state,
         user: null,
@@ -61,12 +73,12 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         isAuthenticated: false,
         isLoading: false,
       };
-    case 'UPDATE_USER':
+    case "UPDATE_USER":
       return {
         ...state,
         user: action.payload,
       };
-    case 'SET_LOADING':
+    case "SET_LOADING":
       return {
         ...state,
         isLoading: action.payload,
@@ -87,67 +99,82 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Initialize auth state from localStorage
+  // Initialize auth state from localStorage - WITH VALIDATION
   useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        const token = authService.getToken();
-        const storedUser = authService.getStoredUser();
+    console.log("🔍 AuthContext: Starting initialization with validation...");
 
-        if (token && storedUser) {
-          // For mock authentication, trust the stored user data
-          dispatch({
-            type: 'LOGIN_SUCCESS',
-            payload: { user: storedUser, token },
-          });
-        } else {
-          dispatch({ type: 'SET_LOADING', payload: false });
-        }
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-        dispatch({ type: 'SET_LOADING', payload: false });
+    try {
+      // First, validate if existing auth data is good
+      if (!validateAuthData()) {
+        console.log("❌ AuthContext: Invalid auth data found, clearing...");
+        clearAuthData();
+        dispatch({ type: "SET_LOADING", payload: false });
+        return;
       }
-    };
 
-    initializeAuth();
+      const token = authService.getToken();
+      const storedUser = authService.getStoredUser();
+
+      if (token && storedUser) {
+        console.log("✅ AuthContext: Valid stored auth found, logging in");
+        dispatch({
+          type: "LOGIN_SUCCESS",
+          payload: { user: storedUser, token },
+        });
+      } else {
+        console.log("❌ AuthContext: No stored auth found");
+        dispatch({ type: "SET_LOADING", payload: false });
+      }
+    } catch (error) {
+      console.error("❌ AuthContext: Error during initialization:", error);
+      clearAuthData();
+      dispatch({ type: "SET_LOADING", payload: false });
+    }
   }, []);
 
   // Login function
   const login = async (credentials: LoginCredentials): Promise<void> => {
     try {
-      dispatch({ type: 'LOGIN_START' });
-      
+      dispatch({ type: "LOGIN_START" });
+
       // Use ONLY actual Railway API for login - no mocks
-      console.log('🔐 AuthContext: Starting login process...');
+      console.log("🔐 AuthContext: Starting login process...");
       const response = await authService.login(credentials);
-      console.log('🔐 AuthContext: AuthService response:', response);
-      
+      console.log("🔐 AuthContext: AuthService response:", response);
+
       // Check if we got proper response structure
       if (!response.token) {
-        console.error('❌ AuthContext: No token in response!', response);
-        throw new Error('Login failed: No token received from server');
+        console.error("❌ AuthContext: No token in response!", response);
+        throw new Error("Login failed: No token received from server");
       }
-      
+
       if (!response.user) {
-        console.error('❌ AuthContext: No user in response!', response);
-        throw new Error('Login failed: No user data received from server');
+        console.error("❌ AuthContext: No user in response!", response);
+        throw new Error("Login failed: No user data received from server");
       }
-      
-      console.log('✅ AuthContext: Login successful, dispatching success action');
+
+      console.log(
+        "✅ AuthContext: Login successful, dispatching success action"
+      );
       dispatch({
-        type: 'LOGIN_SUCCESS',
+        type: "LOGIN_SUCCESS",
         payload: { user: response.user, token: response.token },
       });
-      
+
       // Verify the state was updated
       setTimeout(() => {
-        const storedToken = localStorage.getItem('wealthify_token');
-        console.log('🔍 AuthContext: Token verification after login:', storedToken ? storedToken.substring(0, 20) + '...' : 'NO TOKEN');
+        const storedToken = localStorage.getItem("wealthify_token");
+        console.log(
+          "🔍 AuthContext: Token verification after login:",
+          storedToken ? storedToken.substring(0, 20) + "..." : "NO TOKEN"
+        );
       }, 100);
-      
     } catch (error) {
-      console.error('❌ AuthContext: Login failed:', error);
-      dispatch({ type: 'LOGIN_FAILURE', payload: error instanceof Error ? error.message : 'Login failed' });
+      console.error("❌ AuthContext: Login failed:", error);
+      dispatch({
+        type: "LOGIN_FAILURE",
+        payload: error instanceof Error ? error.message : "Login failed",
+      });
       throw error;
     }
   };
@@ -155,19 +182,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Register function
   const register = async (signupData: SignupData): Promise<void> => {
     try {
-      dispatch({ type: 'LOGIN_START' });
-      
+      dispatch({ type: "LOGIN_START" });
+
       // Use ONLY actual Railway API for registration - no mocks
       const response = await authService.register(signupData);
-      console.log('API registration successful:', response);
-      
+      console.log("API registration successful:", response);
+
       dispatch({
-        type: 'LOGIN_SUCCESS',
+        type: "LOGIN_SUCCESS",
         payload: { user: response.user, token: response.token },
       });
     } catch (error) {
-      console.error('API registration failed:', error);
-      dispatch({ type: 'LOGIN_FAILURE', payload: error instanceof Error ? error.message : 'Registration failed' });
+      console.error("API registration failed:", error);
+      dispatch({
+        type: "LOGIN_FAILURE",
+        payload: error instanceof Error ? error.message : "Registration failed",
+      });
       throw error;
     }
   };
@@ -176,19 +206,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async (): Promise<void> => {
     try {
       await authService.logout();
-      
+
       // Manually clear localStorage to ensure complete logout
-      localStorage.removeItem('wealthify_token');
-      localStorage.removeItem('wealthify_user');
-      console.log('Cleared authentication data from localStorage');
-      
-      dispatch({ type: 'LOGOUT' });
+      localStorage.removeItem("wealthify_token");
+      localStorage.removeItem("wealthify_user");
+      console.log("Cleared authentication data from localStorage");
+
+      dispatch({ type: "LOGOUT" });
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
       // Force logout even if API call fails
-      localStorage.removeItem('wealthify_token');
-      localStorage.removeItem('wealthify_user');
-      dispatch({ type: 'LOGOUT' });
+      localStorage.removeItem("wealthify_token");
+      localStorage.removeItem("wealthify_user");
+      dispatch({ type: "LOGOUT" });
     }
   };
 
@@ -196,7 +226,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const updateProfile = async (userData: Partial<User>): Promise<void> => {
     try {
       const updatedUser = await authService.updateProfile(userData);
-      dispatch({ type: 'UPDATE_USER', payload: updatedUser });
+      dispatch({ type: "UPDATE_USER", payload: updatedUser });
     } catch (error) {
       throw error;
     }
@@ -240,7 +270,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
