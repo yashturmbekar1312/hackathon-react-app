@@ -68,7 +68,7 @@ const Login: React.FC = () => {
       <div className="w-full max-w-md">
         <Card>
           <CardHeader className="text-center">
-            <img src={logo} alt="logo" style={{ width: '100px', height: '100%' }} />
+            <img src={logo} alt="logo" style={{ width: '150px', height: '100%', margin: '0 auto' }} />
             <CardTitle className="text-3xl font-bold text-gray-900">
               Welcome to Wealthify
             </CardTitle>
