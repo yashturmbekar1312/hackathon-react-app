@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSalary } from '../hooks/useSalary';
 import { useExpenses } from '../hooks/useExpenses';
@@ -8,6 +9,7 @@ import { Button } from '../components/ui/button';
 
 const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const { getMonthlyIncome, getNextPayDate } = useSalary();
   const { getTotalExpenses, getNetSavings, getBudgetAlerts } = useExpenses();
   const { calculateSavingsProjection, savingsProjection } = useInvestments();
@@ -86,18 +88,18 @@ const Dashboard: React.FC = () => {
       <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
-            <a href="/dashboard" className="border-b-2 border-blue-500 py-4 px-1 text-blue-600 font-medium">
+            <Link to="/dashboard" className="border-b-2 border-blue-500 py-4 px-1 text-blue-600 font-medium">
               Dashboard
-            </a>
-            <a href="/salary" className="border-b-2 border-transparent py-4 px-1 text-gray-500 hover:text-gray-700">
+            </Link>
+            <Link to="/salary" className="border-b-2 border-transparent py-4 px-1 text-gray-500 hover:text-gray-700">
               Salary
-            </a>
-            <a href="/expenses" className="border-b-2 border-transparent py-4 px-1 text-gray-500 hover:text-gray-700">
+            </Link>
+            <Link to="/expenses" className="border-b-2 border-transparent py-4 px-1 text-gray-500 hover:text-gray-700">
               Expenses
-            </a>
-            <a href="/investments" className="border-b-2 border-transparent py-4 px-1 text-gray-500 hover:text-gray-700">
+            </Link>
+            <Link to="/investments" className="border-b-2 border-transparent py-4 px-1 text-gray-500 hover:text-gray-700">
               Investments
-            </a>
+            </Link>
           </div>
         </div>
       </nav>
@@ -213,17 +215,17 @@ const Dashboard: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <Button variant="outline" className="w-full justify-start" onClick={() => window.location.href = '/salary'}>
+                  <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/salary')}>
                     Set Income Plan
                   </Button>
-                  <Button variant="outline" className="w-full justify-start" onClick={() => window.location.href = '/expenses'}>
+                  <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/expenses')}>
                     Track Expenses
                   </Button>
-                  <Button variant="outline" className="w-full justify-start" onClick={() => window.location.href = '/investments'}>
+                  <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/investments')}>
                     View Investment Suggestions
                   </Button>
                   {savingsProjection.surplusAmount > 0 && (
-                    <Button className="w-full" onClick={() => window.location.href = '/investments'}>
+                    <Button className="w-full" onClick={() => navigate('/investments')}>
                       Invest Surplus ({formatCurrency(savingsProjection.surplusAmount)})
                     </Button>
                   )}
@@ -250,7 +252,7 @@ const Dashboard: React.FC = () => {
                   <p className="text-sm text-gray-600 mb-4">
                     Add your salary details and payment schedule
                   </p>
-                  <Button variant="outline" onClick={() => window.location.href = '/salary'}>
+                  <Button variant="outline" onClick={() => navigate('/salary')}>
                     Setup Income
                   </Button>
                 </div>
@@ -260,7 +262,7 @@ const Dashboard: React.FC = () => {
                   <p className="text-sm text-gray-600 mb-4">
                     Import transactions and create budgets
                   </p>
-                  <Button variant="outline" onClick={() => window.location.href = '/expenses'}>
+                  <Button variant="outline" onClick={() => navigate('/expenses')}>
                     Track Expenses
                   </Button>
                 </div>
@@ -270,7 +272,7 @@ const Dashboard: React.FC = () => {
                   <p className="text-sm text-gray-600 mb-4">
                     Receive AI-powered investment suggestions
                   </p>
-                  <Button variant="outline" onClick={() => window.location.href = '/investments'}>
+                  <Button variant="outline" onClick={() => navigate('/investments')}>
                     See Suggestions
                   </Button>
                 </div>
